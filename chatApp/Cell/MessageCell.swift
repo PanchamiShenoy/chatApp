@@ -68,13 +68,13 @@ class MessageCell: UITableViewCell {
            // messageContainer.rightAnchor.constraint(equalTo:rightAnchor,constant: -10).isActive = true
             leftConstraint?.isActive =  false
             rightConstraint?.isActive = true
+          
             messageContainer.backgroundColor = .systemIndigo
-            
         }
         else{
-           
             rightConstraint?.isActive = false
             leftConstraint?.isActive =  true
+         
            // messageContainer.leftAnchor.constraint(equalTo: leftAnchor,constant: 10).isActive = true
             messageContainer.backgroundColor = .secondaryLabel
         }

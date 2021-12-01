@@ -14,12 +14,14 @@ struct MessageModel {
     var message: String
     var time: Date
     var timeInString: String?
+    var imagePath:String?
     
     var dictionary: [String: Any] {
         return [
             "sender": sender,
             "message": message,
-            "time": timeInString!
+            "time": timeInString!,
+            "imagePath":imagePath
         ]
     }
 }
