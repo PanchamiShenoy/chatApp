@@ -131,8 +131,9 @@ extension NewConversationViewController: UICollectionViewDataSource {
               }
             }
         print("New Chat")
+    var userList = [currentUser!,selectedUser]
     DatabaseManager.shared.addChat(user1: currentUser!, user2: selectedUser, id: id)
-        var chat = ChatModel(users: users, lastMessage: nil, messagesArray: [], otherUserIndex: 1,chatId: id)
+        var chat = ChatModel(users:userList, lastMessage: nil, messagesArray: [], otherUserIndex: 1,chatId: id)
         //present(chatVC, animated: true, completion: nil)
         delegate?.controller(self, wantsToStartChatWith: chat)
            }

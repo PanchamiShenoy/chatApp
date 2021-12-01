@@ -100,9 +100,9 @@ struct DatabaseManager {
                         let sender = message["sender"] as! String
                         let messageContent = message["message"] as! String
                         let timeString = message["time"] as! String
-                        
+                        let imagePath = message["imagePath"] as! String
                         let time = databaseDateFormatter.date(from: timeString)
-                        resultArray.append(MessageModel(sender: sender, message: messageContent, time: time!))
+                        resultArray.append(MessageModel(sender: sender, message: messageContent, time: time!,imagePath:imagePath))
                     }
                     
                     completion(resultArray)
@@ -192,6 +192,17 @@ struct DatabaseManager {
                            chats.append(chat)
                        }
                    }
+//               let count:Int = 0
+//                   for i in 0..<count
+//                   {
+//                       for j in 0..<count - i - 1 {
+//                           if chats[j].lastMessage?.time > chats[j].lastMessage?.time{
+//
+//                           }
+//
+//                       }
+//
+//                   }
                    print(chats)
                    completion(chats)
                }
