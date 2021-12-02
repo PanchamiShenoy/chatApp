@@ -41,7 +41,7 @@ class NewConversationViewController:UIViewController,UICollectionViewDelegate{
     }
     
     func setupKeyboardObservers() {
-       // NSNotificationC
+        // NSNotificationC
     }
     
     func configureUI() {
@@ -78,7 +78,7 @@ class NewConversationViewController:UIViewController,UICollectionViewDelegate{
     func fetchAllUser() {
         DatabaseManager.shared.fetchAllUsers(uid: uid) { users in
             self.users = users
-           // self.results = users
+            // self.results = users
             DispatchQueue.main.async {
                 self.collectionView.reloadData()
             }
@@ -97,11 +97,11 @@ extension NewConversationViewController: UICollectionViewDataSource {
         
         let user = searching ? results[indexPath.row] : users[indexPath.row]
         
-            //cell.text = user.email
+        //cell.text = user.email
         cell.message.text = user.username
         cell.time.isHidden = true
         cell.checkBox.isHidden =  true
-       // cell.selectButton.isHidden = true
+        // cell.selectButton.isHidden = true
         
         let uid = user.uid
         
@@ -114,31 +114,32 @@ extension NewConversationViewController: UICollectionViewDataSource {
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let selectedUser = searching ? results[indexPath.row] : users[indexPath.row]
-               let id = "\(currentUser!.uid)_\(selectedUser.uid)"
-               let chatVC = ChatViewController()
+        let id = "\(currentUser!.uid)_\(selectedUser.uid)"
+        let chatVC = ChatViewController()
         for chat in conversations {
-              var currentChat = chat
-              let uid1 = chat.users[0].uid
-              let uid2 = chat.users[1].uid
-              if uid1 == currentUser!.uid && uid2 == selectedUser.uid || uid1 == selectedUser.uid && uid2 == currentUser!.uid {
+            var currentChat = chat
+            let uid1 = chat.users[0].uid
+            let uid2 = chat.users[1].uid
+            if uid1 == currentUser!.uid && uid2 == selectedUser.uid || uid1 == selectedUser.uid && uid2 == currentUser!.uid {
                 print("Already Chated")
                 currentChat.otherUserIndex = uid1 == currentUser!.uid ? 1 : 0
-//                chatVC.chat = currentChat
-//                  chatVC.title = selectedUser.username
-//                navigationController?.pushViewController(chatVC, animated: true)
-                  delegate?.controller(self, wantsToStartChatWith: currentChat)
+                //                chatVC.chat = currentChat
+                //                  chatVC.title = selectedUser.username
+                //                navigationController?.pushViewController(chatVC, animated: true)
+                delegate?.controller(self, wantsToStartChatWith: currentChat)
                 return
-              }
             }
+        }
         print("New Chat")
-    var userList = [currentUser!,selectedUser]
-    DatabaseManager.shared.addChat(user1: currentUser!, user2: selectedUser, id: id)
+        let userList :[User] = [currentUser!,selectedUser]
+        
+        DatabaseManager.shared.addChat(user1: currentUser!, user2: selectedUser, id: id)
         var chat = ChatModel(users:userList, lastMessage: nil, messagesArray: [], otherUserIndex: 1,chatId: id)
         //present(chatVC, animated: true, completion: nil)
         delegate?.controller(self, wantsToStartChatWith: chat)
-           }
-        
     }
+    
+}
 
 
 extension NewConversationViewController: UICollectionViewDelegateFlowLayout {
