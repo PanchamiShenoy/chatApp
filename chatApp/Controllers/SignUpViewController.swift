@@ -27,15 +27,15 @@ class SignUpViewController: UIViewController {
     
     let image :UIImageView = {
         let image = UIImageView()
-       image.image = UIImage(systemName: "person.fill")
+        image.image = UIImage(systemName: "person.fill")
         image.clipsToBounds = true
         image.contentMode = .scaleAspectFit
         image.backgroundColor = UIColor.gray
         image.tintColor = UIColor.white
         image.layer.cornerRadius = 50
         image.isUserInteractionEnabled = true
-         return image
-     }()
+        return image
+    }()
     let signIn :UIButton = {
         let signIn = UIButton()
         signIn.setTitle("Already have an account?Login In", for: .normal)
@@ -50,14 +50,14 @@ class SignUpViewController: UIViewController {
     var lastName = CustomTextField(placeholder: "lastName",isPassword: false)
     var email = CustomTextField(placeholder: "email",isPassword:false)
     var password = CustomTextField(placeholder: "password",isPassword: true)
-  lazy var containerFirstName = CustomContainerView(image: UIImage(systemName: "person.fill")!, textField:firstName)
+    lazy var containerFirstName = CustomContainerView(image: UIImage(systemName: "person.fill")!, textField:firstName)
     lazy var containerlastName = CustomContainerView(image: UIImage(systemName: "person.fill")!, textField:lastName)
     lazy var containerEmail = CustomContainerView(image: UIImage(systemName: "envelope")!, textField:email)
     lazy var containerPassword = CustomContainerView(image: UIImage(systemName: "eye")!, textField:password)
     
     override func viewDidLoad() {
         super.viewDidLoad()
-       
+        
         configure()
         let gesture = UITapGestureRecognizer(target: self, action: #selector(didTapProfilePic))
         image.addGestureRecognizer(gesture)
@@ -71,7 +71,7 @@ class SignUpViewController: UIViewController {
         password.translatesAutoresizingMaskIntoConstraints = false
         signUp.translatesAutoresizingMaskIntoConstraints = false
         image.translatesAutoresizingMaskIntoConstraints = false
-    
+        
         
         let stack = UIStackView(arrangedSubviews: [containerFirstName,containerlastName,containerEmail,containerPassword,signUp,signIn])
         stack.translatesAutoresizingMaskIntoConstraints = false
@@ -87,16 +87,16 @@ class SignUpViewController: UIViewController {
         image.topAnchor.constraint(equalTo: view.topAnchor,constant: 60).isActive = true
         image.heightAnchor.constraint(equalToConstant: 100).isActive = true
         image.widthAnchor.constraint(equalToConstant: 100).isActive = true
-
+        
     }
     
     @objc func onSignUp(){
-       let error = validateFields()
+        let error = validateFields()
         
         if error != nil {
             showAlert(title: "ERROR", messageContent: error!)
             return
-            }
+        }
         else{
             let firstName = firstName.text!.trimmingCharacters(in: .whitespacesAndNewlines)
             let secondName = lastName.text!.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -111,21 +111,21 @@ class SignUpViewController: UIViewController {
                 }
                 let uid = authResult?.user.uid
                 
-                StorageManager.ImageUploader.uploadImage(image: profilePic!, uid: uid!) { url in
-                                       let newUser = User(username: firstName + secondName, email: email, profileURL: url, uid: uid!)
-                                       DatabaseManager.shared.addUser(user: newUser)
-                                      // self?.delegate?.userAuthenticated()
-                                       self?.dismiss(animated: true)
-                                   }
+                StorageManager.shared.uploadImage(image: profilePic!, uid: uid!) { url in
+                    let newUser = User(username: firstName + secondName, email: email, profileURL: url, uid: uid!)
+                    DatabaseManager.shared.addUser(user: newUser)
+                    // self?.delegate?.userAuthenticated()
+                    self?.dismiss(animated: true)
+                }
                 self?.presentingViewController?.presentingViewController?.dismiss(animated: true, completion: nil)
             }
             
             
-           
+            
             
             
         }
-       // dismiss(animated: true, completion: nil)
+        // dismiss(animated: true, completion: nil)
     }
     
     func validateFields() -> String? {
@@ -148,7 +148,7 @@ class SignUpViewController: UIViewController {
     }
     
     
-
+    
 }
 extension SignUpViewController:UIImagePickerControllerDelegate,UINavigationControllerDelegate{
     
