@@ -9,6 +9,7 @@ import FirebaseAuth
 import NotificationCenter
 
 class NewConversationViewController:UIViewController,UICollectionViewDelegate{
+    
     let cellIdentifier = "userCell"
     
     var conversations:[ChatModel] = []
@@ -37,7 +38,10 @@ class NewConversationViewController:UIViewController,UICollectionViewDelegate{
         configureUI()
         configureSearchBar()
         fetchAllUser()
-        
+        DatabaseManager.shared.fetchCurrentUser(uid:uid) { currentUser in
+            self.currentUser = currentUser
+            print("##########",currentUser)
+        }
     }
     
     func setupKeyboardObservers() {
@@ -123,19 +127,14 @@ extension NewConversationViewController: UICollectionViewDataSource {
             if uid1 == currentUser!.uid && uid2 == selectedUser.uid || uid1 == selectedUser.uid && uid2 == currentUser!.uid {
                 print("Already Chated")
                 currentChat.otherUserIndex = uid1 == currentUser!.uid ? 1 : 0
-                //                chatVC.chat = currentChat
-                //                  chatVC.title = selectedUser.username
-                //                navigationController?.pushViewController(chatVC, animated: true)
                 delegate?.controller(self, wantsToStartChatWith: currentChat)
                 return
             }
         }
         print("New Chat")
         let userList :[User] = [currentUser!,selectedUser]
-        
         DatabaseManager.shared.addChat(user1: currentUser!, user2: selectedUser, id: id)
-        var chat = ChatModel(users:userList, lastMessage: nil, messagesArray: [], otherUserIndex: 1,chatId: id)
-        //present(chatVC, animated: true, completion: nil)
+        var chat = ChatModel(users:userList, lastMessage: nil, messagesArray: [], otherUserIndex: 1,chatId: id,isGroupChat:false)
         delegate?.controller(self, wantsToStartChatWith: chat)
     }
     

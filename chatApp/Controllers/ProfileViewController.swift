@@ -15,23 +15,24 @@ class ProfileViewController: UIViewController {
     @IBOutlet weak var tableView: UITableView!
     
     var imageView:UIImageView!
+    var userName =  UILabel()
+    var Email = UILabel()
     let data = ["Logout"]
     var path : String!
+    var currentUser :User?
     override func viewDidLoad() {
         super.viewDidLoad()
-        print(FirebaseAuth.Auth.auth().currentUser?.uid)
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
         tableView.delegate = self
         tableView.dataSource = self
-        
     }
     override func viewDidAppear(_ animated: Bool) {
-        tableView.tableHeaderView = createTableHeader()
         fetchUser()
+        tableView.tableHeaderView = createTableHeader()
     }
     func createTableHeader()->UIView? {
         
-        let headerView = UIView(frame: CGRect(x: 0, y: 0, width:view.frame.width, height: 200))
+        let headerView = UIView(frame: CGRect(x: 0, y: 0, width:view.frame.width, height: 300))
         headerView.backgroundColor = UIColor.systemIndigo
         
         imageView = UIImageView(frame: CGRect(x: (view.frame.width-150)/2, y: 30, width: 150, height: 150))
@@ -43,22 +44,31 @@ class ProfileViewController: UIViewController {
         imageView.tintColor = .white
         imageView.image = UIImage(systemName: "person.fill")
         headerView.addSubview(imageView)
+        userName = UILabel(frame: CGRect(x: (view.frame.width-250)/2, y: 210, width: 400, height: 30))
+        userName.textColor = .white
+        Email = UILabel(frame: CGRect(x: (view.frame.width-250)/2, y: 250, width: 400, height: 30))
+        Email.textColor = .white
+        headerView.addSubview(userName)
+        headerView.addSubview(Email)
         return headerView
         
     }
     func fetchUser(){
-        print("))))))))))))))))))))))))))))))")
         let uid = Auth.auth().currentUser?.uid
-        print( "Profile/\(uid)")
+        DatabaseManager.shared.fetchCurrentUser(uid: uid!) { user in
+            DispatchQueue.main.async {
+                self.currentUser = user
+                self.userName.text = "USER NAME : "+user.username
+                self.Email.text = "EMAIL : "+user.email
+
+            }
+        }
         StorageManager.shared.downloadImageWithPath(path: "Profile/\(uid!)") { image in
-            print("((((((((((((((((((((((((((")
             DispatchQueue.main.async {
                 self.imageView.image = image
                 
             }
         }
-        
-        
     }
     
 }
