@@ -5,13 +5,16 @@
 //  Created by Panchami Shenoy on 16/11/21.
 //
 import UIKit
+import FirebaseAuth
 class ChatViewController:UITableViewController{
     
     var messages: [MessageModel] = []
-    let cellIdentifier = "chatCell"
+    let messageCell = "MessageCell"
+    let imageCell = "ImageCell"
     var otherUser: User!
     var currentUser: User!
-    var chatId: String?
+    var uid = Auth.auth().currentUser?.uid
+   // var chatId: String?
     var chat:ChatModel!
     var scrolView:UIScrollView!
     override func viewDidLoad() {
@@ -96,24 +99,28 @@ class ChatViewController:UITableViewController{
     }
     
     func configure() {
-        
-        if chat.otherUserIndex == 0 {
-            otherUser = chat.users[0]
-            currentUser = chat.users[1]
-        } else {
-            otherUser = chat.users[1]
-            currentUser = chat.users[0]
+        var name:String
+        DatabaseManager.shared.fetchCurrentUser(uid: uid!) { user in
+            self.currentUser = user
         }
-        chatId = "\(chat.users[0].uid)_\(chat.users[1].uid)"
-        navigationItem.title = otherUser.username
+        if chat.isGroupChat {
+              name = chat.groupChatName!
+            } else {
+              if chat.users[0].uid == uid {
+                name = chat.users[1].username
+              } else {
+                name = chat.users[0].username
+              }
+            }
+            navigationItem.title = name
         
     }
     
     func configureTableView() {
         tableView.separatorStyle = .none
         //tableView.contentInset = UIEdgeInsets(top: 5, left: 0, bottom: 70 , right: 0)
-        tableView.register(MessageCell.self, forCellReuseIdentifier: cellIdentifier)
-        
+        tableView.register(MessageCell.self, forCellReuseIdentifier: messageCell)
+        tableView.register(ImageCell.self, forCellReuseIdentifier: imageCell)
     }
     
     @objc func sendPhoto(){
@@ -123,10 +130,7 @@ class ChatViewController:UITableViewController{
     @objc func sendMessage(){
         if messageTextField.text != "" {
             let newMessage = MessageModel(sender: currentUser.uid, message: messageTextField.text!, time: Date(),imagePath:"")
-            //chat?.messagesArray?.append(newMessage)
-            messages.append(newMessage)
-            chat?.lastMessage = newMessage
-            DatabaseManager.shared.addMessage(chat: chat!, id: chatId!,messageContent:messages)
+            DatabaseManager.shared.addMessage(lastMessage: newMessage, id: chat.chatId!)
             
             messageTextField.text = ""
             
@@ -140,14 +144,11 @@ class ChatViewController:UITableViewController{
     func  sendPhotoMessage(img:UIImage){
         let path = "MessageImages/\(NSUUID().uuidString)"
         let newMessage = MessageModel(sender: self.currentUser.uid, message: "", time: Date(),imagePath:path)
-        messages.append(newMessage)
-        chat.lastMessage = newMessage
         StorageManager.shared.uploadMeesageImage(image:img,path:path) { url in
             print("######################")
             print(url)
         }
-        DatabaseManager.shared.addMessage(chat: self.chat!, id: self.chatId!, messageContent: self.messages)
-        
+        DatabaseManager.shared.addMessage(lastMessage: newMessage, id: chat.chatId!)
         DispatchQueue.main.async {
             self.tableView.reloadData()
         }
@@ -176,16 +177,23 @@ class ChatViewController:UITableViewController{
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: cellIdentifier, for: indexPath) as! MessageCell
-        cell.messageContent.text = ""
-        cell.time.text = ""
-        //        cell.chatImage.image = UIImage(systemName: "perosn.fill")
-        
-        let messageItem = messages[indexPath.row]
-        cell.message = messageItem
-        cell.clipsToBounds = true;
-        // cell.backgroundColor = .red
-        return cell
+        if messages[indexPath.row].imagePath == "" {
+            let cell = tableView.dequeueReusableCell(withIdentifier: messageCell, for: indexPath) as! MessageCell
+            cell.message = messages[indexPath.row]
+            cell.backgroundColor = .systemBackground
+            return cell
+        } else {
+            let cell = tableView.dequeueReusableCell(withIdentifier: imageCell, for: indexPath) as! ImageCell
+            cell.message = messages[indexPath.row]
+            StorageManager.shared.downloadImageWithPath(path: messages[indexPath.row].imagePath!, completion: { image in
+                DispatchQueue.main.async {
+                    cell.MessageImage.image = image
+                }
+            })
+            cell.backgroundColor = .systemBackground
+            return cell
+            
+        }
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {

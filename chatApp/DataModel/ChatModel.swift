@@ -14,5 +14,8 @@ struct ChatModel{
     var messagesArray: [MessageModel]?
     var otherUserIndex: Int?
     var chatId: String?
+    var isGroupChat: Bool
+    var groupChatName: String?
+    var groupChatProfilePath: String?
 }
 

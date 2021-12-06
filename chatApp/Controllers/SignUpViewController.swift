@@ -15,6 +15,7 @@ class SignUpViewController: UIViewController {
     @objc func onAccountExist(){
         dismiss(animated: true, completion: nil)
     }
+    let scrollView = UIScrollView()
     
     let signUp : UIButton = {
         let login = UIButton()
@@ -30,7 +31,7 @@ class SignUpViewController: UIViewController {
         image.image = UIImage(systemName: "person.fill")
         image.clipsToBounds = true
         image.contentMode = .scaleAspectFit
-        image.backgroundColor = UIColor.gray
+        image.backgroundColor = UIColor.systemIndigo
         image.tintColor = UIColor.white
         image.layer.cornerRadius = 50
         image.isUserInteractionEnabled = true
@@ -59,6 +60,7 @@ class SignUpViewController: UIViewController {
         super.viewDidLoad()
         
         configure()
+        configureOrientationObserver()
         let gesture = UITapGestureRecognizer(target: self, action: #selector(didTapProfilePic))
         image.addGestureRecognizer(gesture)
         // Do any additional setup after loading the view.
@@ -66,7 +68,9 @@ class SignUpViewController: UIViewController {
     
     func configure(){
         view.backgroundColor = .systemBackground
-        view.addSubview(image)
+        
+        // view.addSubview(image)
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
         email.translatesAutoresizingMaskIntoConstraints = false
         password.translatesAutoresizingMaskIntoConstraints = false
         signUp.translatesAutoresizingMaskIntoConstraints = false
@@ -77,17 +81,35 @@ class SignUpViewController: UIViewController {
         stack.translatesAutoresizingMaskIntoConstraints = false
         stack.axis = .vertical
         stack.spacing = 20
-        view.addSubview(stack)
         
-        stack.topAnchor.constraint(equalTo: image.bottomAnchor,constant: 40).isActive = true
-        stack.rightAnchor.constraint(equalTo: view.rightAnchor,constant: -20).isActive = true
-        stack.leftAnchor.constraint(equalTo: view.leftAnchor,constant: 20).isActive = true
+        view.addSubview(scrollView)
+        scrollView.contentSize = CGSize(width: view.frame.width, height: 650)
+        scrollView.addSubview(image)
+        //  scrollView.backgroundColor = .red
+        //scrollView.addSubview(image)
+        scrollView.addSubview(stack)
+        scrollView.leftAnchor.constraint(equalTo: view.leftAnchor).isActive = true
+        scrollView.rightAnchor.constraint(equalTo: view.rightAnchor).isActive = true
+        scrollView.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
+        scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
         
-        image.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
-        image.topAnchor.constraint(equalTo: view.topAnchor,constant: 60).isActive = true
+        image.centerXAnchor.constraint(equalTo: scrollView.centerXAnchor).isActive = true
+        image.topAnchor.constraint(equalTo: scrollView.topAnchor,constant: 60).isActive = true
         image.heightAnchor.constraint(equalToConstant: 100).isActive = true
         image.widthAnchor.constraint(equalToConstant: 100).isActive = true
+        stack.topAnchor.constraint(equalTo: image.bottomAnchor,constant: 40).isActive = true
+        stack.rightAnchor.constraint(equalTo: scrollView.safeAreaLayoutGuide.rightAnchor,constant: -20).isActive = true
+        stack.leftAnchor.constraint(equalTo: scrollView.safeAreaLayoutGuide.leftAnchor,constant: 20).isActive = true
+        //stack.centerXAnchor.constraint(equalTo: scrollView.centerXAnchor).isActive = true
         
+        
+    }
+    func configureOrientationObserver() {
+        NotificationCenter.default.addObserver(self, selector: #selector(handleOrientationChange), name: UIDevice.orientationDidChangeNotification, object: nil)
+    }
+    
+    @objc func handleOrientationChange() {
+        scrollView.contentSize = CGSize(width: view.frame.width, height: 650)
     }
     
     @objc func onSignUp(){

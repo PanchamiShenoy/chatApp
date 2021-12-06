@@ -10,13 +10,20 @@ import UIKit
 import FirebaseAuth
 
 class LoginViewController: UIViewController {
-   
+    var scrollView = UIScrollView()
     override func viewDidLoad() {
         super.viewDidLoad()
         
         configure()
+        configureOrientationObserver()
+    }
+    func configureOrientationObserver() {
+        NotificationCenter.default.addObserver(self, selector: #selector(handleOrientationChange), name: UIDevice.orientationDidChangeNotification, object: nil)
     }
     
+    @objc func handleOrientationChange() {
+        scrollView.contentSize = CGSize(width: view.frame.width, height: 650)
+    }
     @objc func onLogin(){
         let error = validateFields()
         
@@ -24,19 +31,19 @@ class LoginViewController: UIViewController {
             showAlert(title: "Error", messageContent:error!)
         }else{
             
-        FirebaseAuth.Auth.auth().signIn(withEmail: emailTextField.text!, password: passwordTextField.text!) {[weak self] authResult, error in
-            guard let strongSelf = self else{
-                return
+            FirebaseAuth.Auth.auth().signIn(withEmail: emailTextField.text!, password: passwordTextField.text!) {[weak self] authResult, error in
+                guard let strongSelf = self else{
+                    return
+                }
+                guard let result = authResult,error == nil else{
+                    print("failed to login")
+                    return
+                }
+                let user = result.user
+                print("\n logged in ",user)
+                UserDefaults.standard.set(self!.emailTextField.text!,forKey: "email")
+                self!.dismiss(animated: true, completion: nil)
             }
-            guard let result = authResult,error == nil else{
-                print("failed to login")
-                return
-            }
-            let user = result.user
-            print("\n logged in ",user)
-            UserDefaults.standard.set(self!.emailTextField.text!,forKey: "email")
-            self!.dismiss(animated: true, completion: nil)
-        }
             
         }
     }
@@ -46,19 +53,23 @@ class LoginViewController: UIViewController {
         signUpVC.modalPresentationStyle = .fullScreen
         present(signUpVC, animated: true, completion: nil)
     }
-    
-   let icon :UIImageView = {
+    @objc func onForgotPassword(){
+        let resetVC = ResetPasswordViewController()
+        resetVC.modalPresentationStyle = .fullScreen
+        present(resetVC, animated: true, completion: nil)
+    }
+    let icon :UIImageView = {
         let image = UIImageView()
-         image.image = UIImage(named: "imgicon")
-         image.clipsToBounds = true
-         image.contentMode = .scaleAspectFit
-         image.layer.cornerRadius = 50
-         image.translatesAutoresizingMaskIntoConstraints = false
-         return image
+        image.image = UIImage(named: "imgicon")
+        image.clipsToBounds = true
+        image.contentMode = .scaleAspectFit
+        image.layer.cornerRadius = 50
+        image.translatesAutoresizingMaskIntoConstraints = false
+        return image
     }()
     
     let SignInTitle : UILabel = {
-      let title = UILabel()
+        let title = UILabel()
         title.text = "SIGN IN"
         title.textAlignment = .center
         title.textColor = UIColor.systemIndigo
@@ -77,6 +88,15 @@ class LoginViewController: UIViewController {
         return signup
     }()
     
+    let forgotPassword :UIButton = {
+        let forgotPassword = UIButton()
+        forgotPassword.setTitle("Forgot your password?", for: .normal)
+        forgotPassword.backgroundColor = .systemBackground
+        forgotPassword.setTitleColor(.label, for: .normal)
+        forgotPassword.heightAnchor.constraint(equalToConstant: 30).isActive = true
+        forgotPassword.addTarget(self, action: #selector(onForgotPassword), for: .touchUpInside)
+        return forgotPassword
+    }()
     
     let login : UIButton = {
         let login = UIButton()
@@ -101,19 +121,28 @@ class LoginViewController: UIViewController {
     
     func configure(){
         view.backgroundColor = .systemBackground
-        let stack = UIStackView(arrangedSubviews: [SignInTitle,emailContainer,passwordContainer,login,signup])
+        let stack = UIStackView(arrangedSubviews: [SignInTitle,emailContainer,passwordContainer,login,signup,forgotPassword])
         stack.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.translatesAutoresizingMaskIntoConstraints =  false
+        
         stack.axis = .vertical
         stack.spacing = 20
-        view.addSubview(icon)
-        view.addSubview(stack)
-        icon.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
+        view.addSubview(scrollView)
+        scrollView.contentSize = CGSize(width: view.frame.width, height: 650)
+        scrollView.addSubview(icon)
+        scrollView.addSubview(stack)
+        scrollView.leftAnchor.constraint(equalTo: view.leftAnchor).isActive = true
+        scrollView.rightAnchor.constraint(equalTo: view.rightAnchor).isActive = true
+        scrollView.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
+        scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
+        
+        icon.centerXAnchor.constraint(equalTo: scrollView.centerXAnchor).isActive = true
         icon.heightAnchor.constraint(equalToConstant: 100).isActive = true
         icon.widthAnchor.constraint(equalToConstant: 100).isActive = true
-        icon.topAnchor.constraint(equalTo: view.topAnchor,constant: 100).isActive = true
+        icon.topAnchor.constraint(equalTo: scrollView.topAnchor,constant: 100).isActive = true
         stack.topAnchor.constraint(equalTo: icon.topAnchor,constant: 200).isActive = true
-        stack.rightAnchor.constraint(equalTo: view.rightAnchor,constant: -20).isActive = true
-        stack.leftAnchor.constraint(equalTo: view.leftAnchor,constant: +20).isActive = true
+        stack.rightAnchor.constraint(equalTo: scrollView.safeAreaLayoutGuide.rightAnchor,constant: -20).isActive = true
+        stack.leftAnchor.constraint(equalTo: scrollView.safeAreaLayoutGuide.leftAnchor,constant: +20).isActive = true
         
     }
     
@@ -139,6 +168,6 @@ class LoginViewController: UIViewController {
         view.window?.rootViewController = homeViewController
         view.window?.makeKeyAndVisible()
     }
-
+    
 }
 

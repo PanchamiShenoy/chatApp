@@ -7,6 +7,7 @@
 
 import UIKit
 import FirebaseAuth
+import SwiftUI
 class CollectionViewController: UIViewController,UICollectionViewDelegate{
     var currentUser:User?
     var conversations: [ChatModel] = []
@@ -40,13 +41,15 @@ class CollectionViewController: UIViewController,UICollectionViewDelegate{
     }
     func configureNavigationBar() {
         view.backgroundColor = .white
-        
+        navigationItem.title = "Chats"
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
-        appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.white]
+        appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.label]
         appearance.backgroundColor = .systemBackground
-        navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem:.edit, target: self, action: #selector(didTapButton))
+//        navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem:.compose, target: self, action: #selector(didTapButton))
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .compose, target: self, action: #selector(didTapComposeButton))
+        navigationItem.leftBarButtonItem = UIBarButtonItem(image:UIImage(systemName:"person.3.fill" ), style:.plain, target:self, action: #selector(didTapButton))
+               //navigationItem.rightBarButtonItems = [createButton]
         navigationItem.leftBarButtonItem?.tintColor = .systemIndigo
         navigationItem.rightBarButtonItem?.tintColor = .systemIndigo
         navigationController?.navigationBar.standardAppearance = appearance
@@ -60,6 +63,7 @@ class CollectionViewController: UIViewController,UICollectionViewDelegate{
         let uid = Auth.auth().currentUser?.uid
         DatabaseManager.shared.fetchCurrentUser(uid:uid!) { currentUser in
             self.currentUser = currentUser
+            print("##########",currentUser)
         }
         
         DatabaseManager.shared.fetchChats(uid: uid!) { conversation in
@@ -72,15 +76,20 @@ class CollectionViewController: UIViewController,UICollectionViewDelegate{
     }
     
     @objc func didTapButton() {
-        tapped = !tapped
-        collectionView.reloadData()
+        let vc = GroupChatViewController()
+        //let navVc = UINavigationController(rootViewController: vc)
+        // present(navVc, animated: true, completion: nil)
+        vc.delegate = self
+        //vc.currentUser = currentUser
+        vc.hidesBottomBarWhenPushed = true
+        navigationController?.pushViewController(vc, animated: true)
     }
     @objc func didTapComposeButton() {
         let vc = NewConversationViewController()
         let navVc = UINavigationController(rootViewController: vc)
         vc.delegate = self
         vc.conversations = conversations
-        vc.currentUser = currentUser
+       // vc.currentUser = currentUser
         present(navVc, animated: true, completion: nil)
     }
     func configureCollectionView() {
@@ -119,16 +128,25 @@ extension CollectionViewController:UICollectionViewDataSource{
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Cell", for: indexPath) as! ConversationCell
         let chat = conversations[indexPath.row]
-        let otherUser = chat.users[chat.otherUserIndex!]
+       
         // let conversation = conversations[indexPath.row]
         cell.backgroundColor = .systemBackground
         cell.checkBox.isCheckBoxChecked = !tapped
         cell.checkBox.setBackground()
-        cell.title.text = otherUser.username
         if chat.lastMessage?.message != ""{
             cell.message.text = chat.lastMessage?.message
         }else{
             cell.message.attributedText = photo()
+        }
+        var path :String
+        if chat.isGroupChat{
+            path = chat.groupChatProfilePath!
+            cell.title.text = chat.groupChatName
+        }
+        else {
+            let otherUser = chat.users[chat.otherUserIndex!]
+            cell.title.text = otherUser.username
+            path = "Profile/\(otherUser.uid)"
         }
         
         let dateFormatter = DateFormatter()
@@ -141,7 +159,7 @@ extension CollectionViewController:UICollectionViewDataSource{
             cell.time.isHidden = false
             cell.time.text = dateFormatter.string(from: chat.lastMessage!.time)
         }
-        StorageManager.shared.downloadImageWithPath(path: "Profile/\(otherUser.uid)") { image in
+        StorageManager.shared.downloadImageWithPath(path:path) { image in
             cell.image.image = image
         }
         return cell
@@ -172,6 +190,19 @@ extension CollectionViewController: NewMessageControllerdelegate {
     func controller(_ controller: NewConversationViewController, wantsToStartChatWith chat: ChatModel) {
         dismiss(animated: true, completion: nil)
         // showChatController(forUser: user)
+        let vc = ChatViewController()
+        vc.chat = chat
+        //vc.otherUser = otherUser
+        vc.hidesBottomBarWhenPushed = true;
+        navigationController?.pushViewController(vc, animated: true)
+    }
+}
+
+extension CollectionViewController: GroupChatControllerdelegate {
+    func controller(_ controller: GroupChatViewController, wantsToStartChatWith chat: ChatModel) {
+        //dismiss(animated: true, completion: nil)
+        // showChatController(forUser: user)
+        
         let vc = ChatViewController()
         vc.chat = chat
         //vc.otherUser = otherUser

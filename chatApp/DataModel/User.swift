@@ -8,12 +8,12 @@
 import Foundation
 
 struct User: Codable {
-
+    
     var username: String
     var email: String
     var profileURL: String
     var uid: String
-
+    
     var dictionary: [String: Any] {
         return [
             "username": username,

@@ -1,21 +1,21 @@
 //
-//  MessageCell.swift
+//  ImageCell.swift
 //  chatApp
 //
-//  Created by Panchami Shenoy on 20/11/21.
+//  Created by Panchami Shenoy on 03/12/21.
 //
+
 
 import UIKit
 import FirebaseAuth
-import MessageKit
-class MessageCell: UITableViewCell {
-    
+
+class ImageCell: UITableViewCell {
     var leftConstraint: NSLayoutConstraint!
     var rightConstraint: NSLayoutConstraint!
     
     var message: MessageModel? {
         didSet {
-            configureMessageCell()
+            configureImageCell()
         }
     }
     var messageContainer : UIView = {
@@ -24,16 +24,19 @@ class MessageCell: UITableViewCell {
         return view
     }()
     
-    
-    var messageLabel: UILabel = {
-        let label = UILabel()
-        label.text = ""
-        label.textColor = .white
-        label.numberOfLines = 0
-        label.textColor = .white
-        label.textAlignment = .left
-        return label
+    var MessageImage: UIImageView = {
+        let image = UIImageView()
+        image.widthAnchor.constraint(equalToConstant: 200).isActive = true
+        image.heightAnchor.constraint(equalToConstant: 200).isActive = true
+        image.layer.cornerRadius = 20
+        image.clipsToBounds = true
+        image.contentMode = .scaleAspectFill
+        image.translatesAutoresizingMaskIntoConstraints = false
+        image.image = UIImage(systemName: "camera.fill")
+        return image
     }()
+    
+    
     let time: UILabel = {
         let time = UILabel()
         time.textColor = .secondarySystemBackground
@@ -42,14 +45,16 @@ class MessageCell: UITableViewCell {
         time.translatesAutoresizingMaskIntoConstraints =  false
         return time
     }()
+    
+    
+    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        
         addSubview(messageContainer)
+        messageContainer.addSubview( MessageImage)
         messageContainer.addSubview(time)
-        messageContainer.addSubview(messageLabel)
+        
         messageContainer.translatesAutoresizingMaskIntoConstraints = false
-        messageLabel.translatesAutoresizingMaskIntoConstraints = false
         time.translatesAutoresizingMaskIntoConstraints = false
         
         messageContainer.layer.cornerRadius = 10
@@ -58,17 +63,15 @@ class MessageCell: UITableViewCell {
         rightConstraint = messageContainer.rightAnchor.constraint(equalTo: rightAnchor, constant: -5)
         
         NSLayoutConstraint.activate([
-            
-            messageLabel.widthAnchor.constraint(lessThanOrEqualToConstant: 200),
-            messageContainer.widthAnchor.constraint(equalTo: messageLabel.widthAnchor, constant: 60),
+            messageContainer.widthAnchor.constraint(equalTo:  MessageImage.widthAnchor, constant: 20),
             messageContainer.topAnchor.constraint(equalTo: topAnchor, constant: 5),
             messageContainer.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -5),
             
-            messageLabel.leftAnchor.constraint(equalTo: messageContainer.leftAnchor, constant: 10),
-            messageLabel.topAnchor.constraint(equalTo: messageContainer.topAnchor, constant: 10),
+            MessageImage.centerXAnchor.constraint(equalTo: messageContainer.centerXAnchor),
+            MessageImage.topAnchor.constraint(equalTo: messageContainer.topAnchor, constant: 10),
             
-            time.rightAnchor.constraint(equalTo: messageContainer.rightAnchor, constant: -10),
-            time.topAnchor.constraint(equalTo: messageLabel.bottomAnchor, constant: 5),
+            time.rightAnchor.constraint(equalTo: messageContainer.rightAnchor),
+            time.topAnchor.constraint(equalTo:  MessageImage.bottomAnchor, constant: 5),
             time.bottomAnchor.constraint(equalTo: messageContainer.bottomAnchor, constant: -10),
         ])
     }
@@ -79,23 +82,26 @@ class MessageCell: UITableViewCell {
     
     
     
-    func configureMessageCell() {
+    
+    func configureImageCell() {
         
-        messageLabel.text = message!.message
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "hh:mm:a"
         time.text = dateFormatter.string(from: message!.time)
+        StorageManager.shared.downloadImageWithPath(path: message!.imagePath!, completion: { image in
+            DispatchQueue.main.async {
+                self.MessageImage.image = image
+            }
+        })
         
         if message?.sender == Auth.auth().currentUser?.uid{
             leftConstraint.isActive = false
             rightConstraint.isActive = true
             messageContainer.backgroundColor = .systemIndigo
-            
         } else {
             rightConstraint.isActive = false
             leftConstraint.isActive = true
             messageContainer.backgroundColor = .secondaryLabel
-            
         }
     }
 }
