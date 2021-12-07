@@ -46,17 +46,24 @@ class ImageCell: UITableViewCell {
         return time
     }()
     
-    
+    let sender:UILabel = {
+        let sender = UILabel()
+        sender.textColor = .secondarySystemBackground
+        sender.font = UIFont.systemFont(ofSize: 12)
+        sender.adjustsFontSizeToFitWidth = true
+        sender.translatesAutoresizingMaskIntoConstraints =  false
+        return sender
+    }()
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         addSubview(messageContainer)
         messageContainer.addSubview( MessageImage)
         messageContainer.addSubview(time)
-        
+        messageContainer.addSubview(sender)
         messageContainer.translatesAutoresizingMaskIntoConstraints = false
         time.translatesAutoresizingMaskIntoConstraints = false
-        
+        sender.translatesAutoresizingMaskIntoConstraints = false
         messageContainer.layer.cornerRadius = 10
         
         leftConstraint = messageContainer.leftAnchor.constraint(equalTo: leftAnchor, constant: 5)
@@ -64,11 +71,14 @@ class ImageCell: UITableViewCell {
         
         NSLayoutConstraint.activate([
             messageContainer.widthAnchor.constraint(equalTo:  MessageImage.widthAnchor, constant: 20),
-            messageContainer.topAnchor.constraint(equalTo: topAnchor, constant: 5),
+            messageContainer.topAnchor.constraint(equalTo: topAnchor, constant: 10),
             messageContainer.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -5),
             
+            sender.topAnchor.constraint(equalTo: messageContainer.topAnchor,constant: 10),
+            sender.leftAnchor.constraint(equalTo:messageContainer.leftAnchor,constant: 5),
+            
             MessageImage.centerXAnchor.constraint(equalTo: messageContainer.centerXAnchor),
-            MessageImage.topAnchor.constraint(equalTo: messageContainer.topAnchor, constant: 10),
+            MessageImage.topAnchor.constraint(equalTo: sender.bottomAnchor, constant: 10),
             
             time.rightAnchor.constraint(equalTo: messageContainer.rightAnchor),
             time.topAnchor.constraint(equalTo:  MessageImage.bottomAnchor, constant: 5),
@@ -99,6 +109,10 @@ class ImageCell: UITableViewCell {
             rightConstraint.isActive = true
             messageContainer.backgroundColor = .systemIndigo
         } else {
+            let uid = message?.sender
+            DatabaseManager.shared.fetchCurrentUser(uid: uid!) { user in
+                self.sender.text = user.username
+            }
             rightConstraint.isActive = false
             leftConstraint.isActive = true
             messageContainer.backgroundColor = .secondaryLabel
