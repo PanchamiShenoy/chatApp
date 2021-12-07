@@ -77,12 +77,13 @@ class CollectionViewController: UIViewController,UICollectionViewDelegate{
     
     @objc func didTapButton() {
         let vc = GroupChatViewController()
-        //let navVc = UINavigationController(rootViewController: vc)
-        // present(navVc, animated: true, completion: nil)
+        let navVc = UINavigationController(rootViewController: vc)
+        //present(navVc, animated: true, completion: nil)
         vc.delegate = self
         //vc.currentUser = currentUser
         vc.hidesBottomBarWhenPushed = true
-        navigationController?.pushViewController(vc, animated: true)
+        //navigationController?.pushViewController(vc, animated: true)
+        present(navVc, animated: true, completion: nil)
     }
     @objc func didTapComposeButton() {
         let vc = NewConversationViewController()
@@ -199,8 +200,8 @@ extension CollectionViewController: NewMessageControllerdelegate {
 }
 
 extension CollectionViewController: GroupChatControllerdelegate {
-    func controller(_ controller: GroupChatViewController, wantsToStartChatWith chat: ChatModel) {
-        //dismiss(animated: true, completion: nil)
+    func controllerGroupChat(wantsToStartChatWith chat: ChatModel) {
+        dismiss(animated: true, completion: nil)
         // showChatController(forUser: user)
         
         let vc = ChatViewController()

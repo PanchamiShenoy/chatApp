@@ -14,6 +14,7 @@ class GroupChatViewController: UIViewController {
     var users: [User] = []
     var collectionView: UICollectionView!
     let cellIdentifier = "GCCell"
+   // var selectedUsers:[User] = []
     var selectedUsers:[IndexPath] = []
     override func viewDidLoad(){
         super.viewDidLoad()
@@ -23,11 +24,8 @@ class GroupChatViewController: UIViewController {
         configureCollectionView()
         fetchAllUsers()
         configureUI()
-        let uid = Auth.auth().currentUser?.uid
-        DatabaseManager.shared.fetchCurrentUser(uid:uid!) { currentUser in
-            self.currentUser = currentUser
-            print("##########",currentUser)
-        }
+        fetchCurrentUser()
+       
     }
     
     let image :UIImageView = {
@@ -48,9 +46,6 @@ class GroupChatViewController: UIViewController {
     }
     @objc func didTapComposeButton(){
         let chatVC = ChatViewController()
-       // var vcArray = navigationController?.viewControllers
-        //vcArray?.removeLast()
-        //vcArray?.removeLast()
         
         let chatID = "\(groupName.text!)_\(UUID())"
         let photoPath = "Profile/\(chatID)"
@@ -68,13 +63,15 @@ class GroupChatViewController: UIViewController {
         
         let chat = ChatModel( users: userArray,lastMessage: nil, messagesArray: [],chatId:chatID,isGroupChat: true, groupChatName: groupName.text, groupChatProfilePath: photoPath)
         
-        //vcArray?.append(chatVC)
-        
-        delegate?.controller(self, wantsToStartChatWith: chat)
-        //navigationController?.setViewControllers(vcArray!, animated: true)
+        delegate?.controllerGroupChat(wantsToStartChatWith: chat)
         
     }
-    
+    func fetchCurrentUser(){
+        let uid = Auth.auth().currentUser?.uid
+        DatabaseManager.shared.fetchCurrentUser(uid:uid!) { currentUser in
+            self.currentUser = currentUser
+        }
+    }
     func configureUI(){
         //navigationController?.title = "GROUP CHAT"
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(didTapComposeButton))
@@ -149,16 +146,20 @@ extension GroupChatViewController: UICollectionViewDataSource {
         return cell
     }
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-//        let selectedUser = users[indexPath]
-//        if selectedUsers.contains(where: { <#IndexPath#> in
-//            <#code#>
-//        })
+//        let selectedUser = users[indexPath.row]
+//        if selectedUsers.contains(selectedUser){
+//            selectedUsers.removeAll { value in
+//              return value == selectedUser
+//            }
+//        }
         let selectedCell: UICollectionViewCell = collectionView.cellForItem(at: indexPath)!
         if selectedUsers.contains(indexPath) {
-                   selectedUsers.remove(at: selectedUsers.firstIndex(of: indexPath)!)
+            selectedUsers.removeAll{ value in
+                return value == indexPath
+            }
             selectedCell.backgroundColor = .white
                } else {
-                   selectedCell.isHighlighted = true
+                  // selectedCell.isHighlighted = true
                    selectedUsers.append(indexPath)
                    selectedCell.backgroundColor = .opaqueSeparator
                }
@@ -222,5 +223,5 @@ extension GroupChatViewController:UIImagePickerControllerDelegate,UINavigationCo
 }
 
 protocol GroupChatControllerdelegate: AnyObject {
-    func controller(_ controller: GroupChatViewController, wantsToStartChatWith chat: ChatModel)
+    func controllerGroupChat(wantsToStartChatWith chat: ChatModel)
 }

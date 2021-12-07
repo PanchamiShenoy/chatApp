@@ -71,25 +71,6 @@ struct DatabaseManager {
     func addUser(user: User) {
         database.child("Users").child(user.uid).setValue(user.dictionary)
     }
-//    func addMessage(chat: ChatModel, id: String,messageContent:[MessageModel]) {
-//
-//        var currentChat = chat
-//
-//        let dateString = databaseDateFormatter.string(from: currentChat.lastMessage!.time)
-//        currentChat.lastMessage?.timeInString = dateString
-//
-//        let lastMessageDictionary = currentChat.lastMessage?.dictionary
-//        var messagesDictionary: [[String: Any]] = []
-//
-//        for var message in messageContent {
-//            let dateString = databaseDateFormatter.string(from: message.time)
-//            message.timeInString = dateString
-//            messagesDictionary.append(message.dictionary)
-//        }
-//        let finalDictionary = ["lastMessage": lastMessageDictionary!,
-//                               "messagesArray": messagesDictionary] as [String : Any]
-//        database.child("Chats").child(id).updateChildValues(finalDictionary)
-//    }
     
     func addMessage(lastMessage: MessageModel, id: String) {
            
@@ -113,8 +94,14 @@ struct DatabaseManager {
                        let sortedKeyArray = result.keys.sorted()
                        for id in sortedKeyArray {
                            let message = result[id]!
-                           let messageObject = createMessageObject(dictionary: message , id: id)
-                           resultArray.append(messageObject)
+                           let sender = message["sender"] as! String
+                           let content = message["message"] as! String
+                           let timeString = message["time"] as! String
+                           let imagePath = message["imagePath"] as! String
+                           let time = databaseDateFormatter.date(from: timeString)
+                           
+                      let messageModel =  MessageModel(sender: sender, message: content, time: time!, timeInString: timeString, imagePath: imagePath)
+                           resultArray.append(messageModel)
                        }
                        completion(resultArray)
                    }
@@ -158,22 +145,9 @@ struct DatabaseManager {
                     
                     let users = value["users"] as! [[String: Any]]
                     let lastMessageArray = value["lastMessage"] as? [String: Any]
-                    let msgArray = value["messagesArray"] as? [[String: Any]]
                     let isGroupChat = value["isGroupChat"] as! Bool
-                    //                    print(users)
+                    
                     if lastMessageArray != nil {
-//                        for messageItem in msgArray! {
-//                            let sender = messageItem["sender"] as! String
-//                            let message = messageItem["message"] as! String
-//                            let timeString = messageItem["time"] as! String
-//
-//                            let time = databaseDateFormatter.date(from: timeString)
-//
-//                            let currentMessage = MessageModel(sender: sender, message: message, time: time!)
-//
-//                            messagesArray.append(currentMessage)
-//                        }
-                        
                         let sender = lastMessageArray!["sender"] as! String
                         let message = lastMessageArray!["message"] as! String
                         let timeString = lastMessageArray!["time"] as! String
@@ -186,9 +160,6 @@ struct DatabaseManager {
                         messagesArray = []
                         lastMessage = nil
                     }
-                    
-                    //                    let user1 = users[0]
-                    //                    let user2 = users[1]
                     var usersArray: [User] = []
                     var chat :ChatModel
                     for user in users {
@@ -223,16 +194,6 @@ struct DatabaseManager {
             }
         }
     }
-    func createMessageObject(dictionary: [String: Any], id: String) -> MessageModel {
-            let sender = dictionary["sender"] as! String
-            let content = dictionary["message"] as! String
-            let timeString = dictionary["time"] as! String
-            //let seen = dictionary["se"] as! Bool
-            let imagePath = dictionary["imagePath"] as! String
-            let time = databaseDateFormatter.date(from: timeString)
-            
-        return MessageModel(sender: sender, message: content, time: time!, timeInString: timeString, imagePath: imagePath)
-        }
 }
 
 

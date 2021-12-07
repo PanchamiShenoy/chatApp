@@ -4,7 +4,6 @@
 //
 //  Created by Panchami Shenoy on 20/11/21.
 //
-
 import UIKit
 import FirebaseAuth
 import MessageKit
@@ -42,16 +41,27 @@ class MessageCell: UITableViewCell {
         time.translatesAutoresizingMaskIntoConstraints =  false
         return time
     }()
+    
+    let sender:UILabel = {
+        let sender = UILabel()
+        sender.textColor = .secondarySystemBackground
+        sender.font = UIFont.systemFont(ofSize: 12)
+        sender.adjustsFontSizeToFitWidth = true
+        sender.translatesAutoresizingMaskIntoConstraints =  false
+        return sender
+    }()
+    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         
         addSubview(messageContainer)
         messageContainer.addSubview(time)
         messageContainer.addSubview(messageLabel)
+        messageContainer.addSubview(sender)
         messageContainer.translatesAutoresizingMaskIntoConstraints = false
         messageLabel.translatesAutoresizingMaskIntoConstraints = false
         time.translatesAutoresizingMaskIntoConstraints = false
-        
+        sender.translatesAutoresizingMaskIntoConstraints = false
         messageContainer.layer.cornerRadius = 10
         
         leftConstraint = messageContainer.leftAnchor.constraint(equalTo: leftAnchor, constant: 5)
@@ -60,12 +70,15 @@ class MessageCell: UITableViewCell {
         NSLayoutConstraint.activate([
             
             messageLabel.widthAnchor.constraint(lessThanOrEqualToConstant: 200),
-            messageContainer.widthAnchor.constraint(equalTo: messageLabel.widthAnchor, constant: 60),
-            messageContainer.topAnchor.constraint(equalTo: topAnchor, constant: 5),
+            messageContainer.widthAnchor.constraint(equalTo: messageLabel.widthAnchor, constant: 100),
+            messageContainer.topAnchor.constraint(equalTo: topAnchor, constant: 10),
             messageContainer.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -5),
             
-            messageLabel.leftAnchor.constraint(equalTo: messageContainer.leftAnchor, constant: 10),
-            messageLabel.topAnchor.constraint(equalTo: messageContainer.topAnchor, constant: 10),
+            sender.topAnchor.constraint(equalTo: messageContainer.topAnchor),
+            sender.leftAnchor.constraint(equalTo: messageContainer.leftAnchor),
+            
+            messageLabel.rightAnchor.constraint(equalTo: messageContainer.rightAnchor, constant: -10),
+            messageLabel.topAnchor.constraint(equalTo: sender.topAnchor, constant: 30),
             
             time.rightAnchor.constraint(equalTo: messageContainer.rightAnchor, constant: -10),
             time.topAnchor.constraint(equalTo: messageLabel.bottomAnchor, constant: 5),
@@ -92,6 +105,11 @@ class MessageCell: UITableViewCell {
             messageContainer.backgroundColor = .systemIndigo
             
         } else {
+            let uid = message?.sender
+            DatabaseManager.shared.fetchCurrentUser(uid: uid!) { user in
+                self.sender.text = user.username
+            }
+            
             rightConstraint.isActive = false
             leftConstraint.isActive = true
             messageContainer.backgroundColor = .secondaryLabel
