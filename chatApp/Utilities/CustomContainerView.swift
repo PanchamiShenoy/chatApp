@@ -10,7 +10,7 @@ class CustomContainerView: UIView {
     
     init(image: UIImage, textField: UITextField) {
         super.init(frame: .zero)
-        backgroundColor = .systemBackground
+        backgroundColor = color.background
         heightAnchor.constraint(equalToConstant: 50).isActive = true
         layer.borderColor = UIColor.gray.cgColor
         layer.borderWidth = 1
@@ -19,7 +19,7 @@ class CustomContainerView: UIView {
         let imageView = UIImageView()
         addSubview(imageView)
         imageView.image = image
-        imageView.tintColor = .systemIndigo
+        imageView.tintColor = color.green
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
         imageView.leftAnchor.constraint(equalTo: leftAnchor, constant: 10).isActive = true
@@ -38,13 +38,5 @@ class CustomContainerView: UIView {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
-    /*
-     // Only override draw() if you perform custom drawing.
-     // An empty implementation adversely affects performance during animation.
-     override func draw(_ rect: CGRect) {
-     // Drawing code
-     }
-     */
     
 }

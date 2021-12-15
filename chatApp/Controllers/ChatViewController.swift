@@ -14,115 +14,20 @@ class ChatViewController:UITableViewController{
     var otherUser: User!
     var currentUser: User!
     var uid = Auth.auth().currentUser?.uid
-   // var chatId: String?
     var chat:ChatModel!
     var scrolView:UIScrollView!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         configure()
         configureTableView()
         fetchMessages()
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = color.background
     }
+    
     override func viewDidAppear(_ animated: Bool) {
         
     }
-    let messageTextField = CustomTextField(placeholder: "Type...", isPassword: false)
-    lazy var inputContainerView: UIView = {
-        let containerView = UIView()
-        containerView.frame = CGRect(x: 0, y: 0, width: view.frame.width, height: 65)
-        containerView.backgroundColor = .systemBackground
-        
-        let sendButton: UIButton = {
-            let button = UIButton()
-            button.setImage(UIImage(systemName: "paperplane.fill"), for: .normal)
-            button.addTarget(self, action: #selector(sendMessage), for: .touchUpInside)
-            button.tintColor = .systemIndigo
-            button.translatesAutoresizingMaskIntoConstraints = false
-            button.backgroundColor = .systemBackground
-            button.layer.borderColor = UIColor.systemGray.cgColor
-            button.layer.borderWidth = 1
-            button.layer.cornerRadius = 25
-            button.heightAnchor.constraint(equalToConstant: 50).isActive = true
-            button.widthAnchor.constraint(equalToConstant: 50).isActive = true
-            return button
-        }()
-        let imageButton: UIButton = {
-            let imageButton = UIButton()
-            imageButton.setImage(UIImage(systemName: "photo"), for: .normal)
-            imageButton.addTarget(self, action: #selector(sendPhoto), for: .touchUpInside)
-            imageButton.tintColor = .systemIndigo
-            imageButton.layer.borderColor = UIColor.systemGray.cgColor
-            imageButton.translatesAutoresizingMaskIntoConstraints = false
-            imageButton.backgroundColor = .systemBackground
-            imageButton.layer.borderWidth = 1
-            imageButton.layer.cornerRadius = 10
-            imageButton.heightAnchor.constraint(equalToConstant: 50).isActive = true
-            imageButton.widthAnchor.constraint(equalToConstant: 50).isActive = true
-            return imageButton
-        }()
-        
-        self.messageTextField.layer.cornerRadius = 20
-        self.messageTextField.layer.borderColor = UIColor.systemGray.cgColor
-        self.messageTextField.layer.borderWidth = 1
-        self.messageTextField.translatesAutoresizingMaskIntoConstraints = false
-        
-        containerView.addSubview(self.messageTextField)
-        containerView.addSubview(sendButton)
-        containerView.addSubview(imageButton)
-        sendButton.rightAnchor.constraint(equalTo: containerView.rightAnchor,constant: -5).isActive = true
-        sendButton.heightAnchor.constraint(equalToConstant: 50).isActive = true
-        sendButton.widthAnchor.constraint(equalToConstant: 50).isActive = true
-        sendButton.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -8).isActive = true
-        
-        imageButton.rightAnchor.constraint(equalTo: sendButton.leftAnchor,constant: -5).isActive = true
-        imageButton.heightAnchor.constraint(equalToConstant: 50).isActive = true
-        imageButton.widthAnchor.constraint(equalToConstant: 50).isActive = true
-        imageButton.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -8).isActive = true
-        
-        self.messageTextField.rightAnchor.constraint(equalTo: imageButton.leftAnchor, constant: -5).isActive = true
-        self.messageTextField.leftAnchor.constraint(equalTo: containerView.leftAnchor,constant: 5).isActive = true
-        self.messageTextField.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -8).isActive = true
-        self.messageTextField.heightAnchor.constraint(equalToConstant: 50).isActive = true
-        
-        return containerView
-    }()
-    override var inputAccessoryView: UIView? {
-        get{
-            
-            return inputContainerView
-        }
-    }
-    
-    override var canBecomeFirstResponder : Bool {
-        return true
-    }
-    
-    func configure() {
-        var name:String
-        DatabaseManager.shared.fetchCurrentUser(uid: uid!) { user in
-            self.currentUser = user
-        }
-        if chat.isGroupChat {
-              name = chat.groupChatName!
-            } else {
-              if chat.users[0].uid == uid {
-                name = chat.users[1].username
-              } else {
-                name = chat.users[0].username
-              }
-            }
-            navigationItem.title = name
-        
-    }
-    
-    func configureTableView() {
-        tableView.separatorStyle = .none
-        //tableView.contentInset = UIEdgeInsets(top: 5, left: 0, bottom: 70 , right: 0)
-        tableView.register(MessageCell.self, forCellReuseIdentifier: messageCell)
-        tableView.register(ImageCell.self, forCellReuseIdentifier: imageCell)
-    }
-    
     @objc func sendPhoto(){
         presentPhotoActionSheet()
     }
@@ -141,11 +46,112 @@ class ChatViewController:UITableViewController{
         
     }
     
+    let messageTextField = CustomTextField(placeholder: "Type a Message", isPassword: false)
+    lazy var inputContainerView: UIView = {
+        let containerView = UIView()
+        containerView.frame = CGRect(x: 0, y: 0, width: view.frame.width, height: 65)
+        containerView.backgroundColor = color.background
+        
+        let sendButton: UIButton = {
+            let button = UIButton()
+            button.setImage(UIImage(systemName: "paperplane.fill"), for: .normal)
+            button.addTarget(self, action: #selector(sendMessage), for: .touchUpInside)
+            button.tintColor = UIColor(red: 0.98, green: 1, blue: 0.969, alpha: 1)
+            button.translatesAutoresizingMaskIntoConstraints = false
+            button.backgroundColor = UIColor(red: 0.008, green: 0.686, blue: 0.612, alpha: 1)
+            button.layer.borderColor = UIColor.systemGray.cgColor
+            button.layer.borderWidth = 1
+            button.layer.cornerRadius = 25
+            button.heightAnchor.constraint(equalToConstant: 50).isActive = true
+            button.widthAnchor.constraint(equalToConstant: 50).isActive = true
+            return button
+        }()
+        let imageButton: UIButton = {
+            let imageButton = UIButton()
+            imageButton.setImage(UIImage(systemName: "camera.fill"), for: .normal)
+            imageButton.addTarget(self, action: #selector(sendPhoto), for: .touchUpInside)
+            imageButton.tintColor = color.time
+            imageButton.translatesAutoresizingMaskIntoConstraints = false
+            imageButton.backgroundColor = UIColor(red: 0.176, green: 0.22, blue: 0.243, alpha: 1)
+            imageButton.layer.cornerRadius = 25
+            imageButton.heightAnchor.constraint(equalToConstant: 50).isActive = true
+            imageButton.widthAnchor.constraint(equalToConstant: 50).isActive = true
+            return imageButton
+        }()
+        
+        self.messageTextField.layer.cornerRadius = 20
+        self.messageTextField.backgroundColor = UIColor(red: 0.176, green: 0.22, blue: 0.243, alpha: 1)
+        self.messageTextField.layer.borderColor = UIColor.systemGray.cgColor
+        //self.messageTextField.layer.borderWidth =
+        self.messageTextField.translatesAutoresizingMaskIntoConstraints = false
+        
+        containerView.addSubview(self.messageTextField)
+        containerView.addSubview(sendButton)
+        messageTextField.addSubview(imageButton)
+        sendButton.rightAnchor.constraint(equalTo: containerView.rightAnchor,constant: -5).isActive = true
+        sendButton.heightAnchor.constraint(equalToConstant: 50).isActive = true
+        sendButton.widthAnchor.constraint(equalToConstant: 50).isActive = true
+        sendButton.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -8).isActive = true
+        
+        imageButton.rightAnchor.constraint(equalTo: messageTextField.rightAnchor,constant: -5).isActive = true
+        imageButton.heightAnchor.constraint(equalToConstant: 70).isActive = true
+        imageButton.widthAnchor.constraint(equalToConstant: 70).isActive = true
+        imageButton.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -8).isActive = true
+        
+        self.messageTextField.rightAnchor.constraint(equalTo: sendButton.leftAnchor, constant: -5).isActive = true
+        self.messageTextField.leftAnchor.constraint(equalTo: containerView.leftAnchor,constant: 5).isActive = true
+        self.messageTextField.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -8).isActive = true
+        self.messageTextField.heightAnchor.constraint(equalToConstant: 50).isActive = true
+        
+        return containerView
+        
+        
+        
+    }()
+    override var inputAccessoryView: UIView? {
+        get{
+            
+            return inputContainerView
+        }
+    }
+    
+    override var canBecomeFirstResponder : Bool {
+        return true
+    }
+    
+    func configure() {
+        var name:String
+        navigationController?.navigationBar.tintColor = color.white
+        navigationItem.backBarButtonItem = UIBarButtonItem(
+            title: "", style: .plain, target: nil, action: nil)
+        
+        DatabaseManager.shared.fetchCurrentUser(uid: uid!) { user in
+            self.currentUser = user
+        }
+        if chat.isGroupChat {
+            name = chat.groupChatName!
+        } else {
+            if chat.users[0].uid == uid {
+                name = chat.users[1].username
+            } else {
+                name = chat.users[0].username
+            }
+        }
+        navigationItem.title = name
+        
+    }
+    
+    func configureTableView() {
+        tableView.separatorStyle = .none
+        tableView.backgroundColor = color.background
+        tableView.register(MessageCell.self, forCellReuseIdentifier: messageCell)
+        tableView.register(ImageCell.self, forCellReuseIdentifier: imageCell)
+    }
+    
     func  sendPhotoMessage(img:UIImage){
         let path = "MessageImages/\(NSUUID().uuidString)"
         let newMessage = MessageModel(sender: self.currentUser.uid, message: "", time: Date(),imagePath:path)
         StorageManager.shared.uploadMeesageImage(image:img,path:path) { url in
-            print("######################")
             print(url)
         }
         DatabaseManager.shared.addMessage(lastMessage: newMessage, id: chat.chatId!)
@@ -157,7 +163,6 @@ class ChatViewController:UITableViewController{
     func fetchMessages() {
         messages = []
         DatabaseManager.shared.fetchMessages(chatId: chat.chatId!) { messages in
-            // print("Messages\(messages)")
             self.messages = messages
             
             DispatchQueue.main.async {
@@ -170,8 +175,6 @@ class ChatViewController:UITableViewController{
         }
     }
     
-    
-    
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return messages.count
     }
@@ -180,17 +183,23 @@ class ChatViewController:UITableViewController{
         if messages[indexPath.row].imagePath == "" {
             let cell = tableView.dequeueReusableCell(withIdentifier: messageCell, for: indexPath) as! MessageCell
             cell.message = messages[indexPath.row]
-            cell.backgroundColor = .systemBackground
+            if chat.isGroupChat {
+                cell.usersList = chat.users
+            }
+            cell.backgroundColor = color.background
             return cell
         } else {
             let cell = tableView.dequeueReusableCell(withIdentifier: imageCell, for: indexPath) as! ImageCell
             cell.message = messages[indexPath.row]
+            if chat.isGroupChat {
+                cell.usersList = chat.users
+            }
             StorageManager.shared.downloadImageWithPath(path: messages[indexPath.row].imagePath!, completion: { image in
                 DispatchQueue.main.async {
                     cell.MessageImage.image = image
                 }
             })
-            cell.backgroundColor = .systemBackground
+            cell.backgroundColor = color.background
             return cell
             
         }
@@ -241,6 +250,4 @@ extension ChatViewController:UIImagePickerControllerDelegate,UINavigationControl
     func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
         picker.dismiss(animated: true, completion: nil)
     }
-    
-    
 }

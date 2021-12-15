@@ -13,18 +13,17 @@ class LoginViewController: UIViewController {
     var scrollView = UIScrollView()
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         configure()
         configureOrientationObserver()
-    }
-    func configureOrientationObserver() {
-        NotificationCenter.default.addObserver(self, selector: #selector(handleOrientationChange), name: UIDevice.orientationDidChangeNotification, object: nil)
+        
     }
     
     @objc func handleOrientationChange() {
         scrollView.contentSize = CGSize(width: view.frame.width, height: 650)
     }
+    
     @objc func onLogin(){
+        login.flash()
         let error = validateFields()
         
         if error != nil {
@@ -53,11 +52,14 @@ class LoginViewController: UIViewController {
         signUpVC.modalPresentationStyle = .fullScreen
         present(signUpVC, animated: true, completion: nil)
     }
+    
     @objc func onForgotPassword(){
         let resetVC = ResetPasswordViewController()
         resetVC.modalPresentationStyle = .fullScreen
         present(resetVC, animated: true, completion: nil)
     }
+    
+    
     let icon :UIImageView = {
         let image = UIImageView()
         image.image = UIImage(named: "imgicon")
@@ -72,17 +74,16 @@ class LoginViewController: UIViewController {
         let title = UILabel()
         title.text = "SIGN IN"
         title.textAlignment = .center
-        title.textColor = UIColor.systemIndigo
+        title.textColor = color.green
         title.font = UIFont.systemFont(ofSize: 23, weight: .bold)
         return title
     }()
-    
-    
+
     let signup :UIButton = {
         let signup = UIButton()
         signup.setTitle("Don't have an account?Sign Up", for: .normal)
-        signup.backgroundColor = .systemBackground
-        signup.setTitleColor(.label, for: .normal)
+        signup.backgroundColor = color.background
+        signup.setTitleColor(color.green, for: .normal)
         signup.heightAnchor.constraint(equalToConstant: 30).isActive = true
         signup.addTarget(self, action: #selector(onRegister), for: .touchUpInside)
         return signup
@@ -91,8 +92,8 @@ class LoginViewController: UIViewController {
     let forgotPassword :UIButton = {
         let forgotPassword = UIButton()
         forgotPassword.setTitle("Forgot your password?", for: .normal)
-        forgotPassword.backgroundColor = .systemBackground
-        forgotPassword.setTitleColor(.label, for: .normal)
+        forgotPassword.backgroundColor = color.background
+        forgotPassword.setTitleColor(color.green, for: .normal)
         forgotPassword.heightAnchor.constraint(equalToConstant: 30).isActive = true
         forgotPassword.addTarget(self, action: #selector(onForgotPassword), for: .touchUpInside)
         return forgotPassword
@@ -100,8 +101,9 @@ class LoginViewController: UIViewController {
     
     let login : UIButton = {
         let login = UIButton()
+        login.pulsate()
         login.setTitle("LOGIN", for: .normal)
-        login.backgroundColor = .systemIndigo
+        login.backgroundColor = color.green
         login.heightAnchor.constraint(equalToConstant: 50).isActive = true
         login.addTarget(self, action: #selector(onLogin), for: .touchUpInside)
         return login
@@ -119,26 +121,34 @@ class LoginViewController: UIViewController {
         return CustomContainerView(image: UIImage(systemName: "eye")!, textField: passwordTextField)
     }()
     
+    func configureOrientationObserver() {
+        NotificationCenter.default.addObserver(self, selector: #selector(handleOrientationChange), name: UIDevice.orientationDidChangeNotification, object: nil)
+    }
+    
     func configure(){
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = color.background
+        
         let stack = UIStackView(arrangedSubviews: [SignInTitle,emailContainer,passwordContainer,login,signup,forgotPassword])
+        stack.axis = .vertical
+        stack.spacing = 20
+        
         stack.translatesAutoresizingMaskIntoConstraints = false
         scrollView.translatesAutoresizingMaskIntoConstraints =  false
         
-        stack.axis = .vertical
-        stack.spacing = 20
         view.addSubview(scrollView)
         scrollView.contentSize = CGSize(width: view.frame.width, height: 650)
         scrollView.addSubview(icon)
         scrollView.addSubview(stack)
+        
         scrollView.leftAnchor.constraint(equalTo: view.leftAnchor).isActive = true
         scrollView.rightAnchor.constraint(equalTo: view.rightAnchor).isActive = true
         scrollView.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
         scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
         
         icon.centerXAnchor.constraint(equalTo: scrollView.centerXAnchor).isActive = true
-        icon.heightAnchor.constraint(equalToConstant: 100).isActive = true
-        icon.widthAnchor.constraint(equalToConstant: 100).isActive = true
+        icon.heightAnchor.constraint(equalToConstant: 250).isActive = true
+        icon.widthAnchor.constraint(equalToConstant: 250).isActive = true
+        
         icon.topAnchor.constraint(equalTo: scrollView.topAnchor,constant: 100).isActive = true
         stack.topAnchor.constraint(equalTo: icon.topAnchor,constant: 200).isActive = true
         stack.rightAnchor.constraint(equalTo: scrollView.safeAreaLayoutGuide.rightAnchor,constant: -20).isActive = true

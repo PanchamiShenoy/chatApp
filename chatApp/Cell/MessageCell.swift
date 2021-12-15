@@ -6,36 +6,43 @@
 //
 import UIKit
 import FirebaseAuth
-import MessageKit
+
 class MessageCell: UITableViewCell {
     
     var leftConstraint: NSLayoutConstraint!
     var rightConstraint: NSLayoutConstraint!
+    
+    var usersList: [User]? {
+        didSet {
+            configureSenderData()
+        }
+    }
     
     var message: MessageModel? {
         didSet {
             configureMessageCell()
         }
     }
+    
     var messageContainer : UIView = {
         let view = UIView()
         view.layer.cornerRadius = 10
         return view
     }()
     
-    
     var messageLabel: UILabel = {
         let label = UILabel()
         label.text = ""
-        label.textColor = .white
+        label.textColor = color.currentUserMessage
+        // label.font = UIFont(name: "PTSans-Regular", size: 17)
         label.numberOfLines = 0
         label.textColor = .white
         label.textAlignment = .left
         return label
     }()
+    
     let time: UILabel = {
         let time = UILabel()
-        time.textColor = .secondarySystemBackground
         time.font = UIFont.systemFont(ofSize: 12)
         time.adjustsFontSizeToFitWidth = true
         time.translatesAutoresizingMaskIntoConstraints =  false
@@ -44,8 +51,8 @@ class MessageCell: UITableViewCell {
     
     let sender:UILabel = {
         let sender = UILabel()
-        sender.textColor = .secondarySystemBackground
-        sender.font = UIFont.systemFont(ofSize: 12)
+        sender.textColor = .orange
+        sender.font = UIFont.systemFont(ofSize: 13)
         sender.adjustsFontSizeToFitWidth = true
         sender.translatesAutoresizingMaskIntoConstraints =  false
         return sender
@@ -58,10 +65,12 @@ class MessageCell: UITableViewCell {
         messageContainer.addSubview(time)
         messageContainer.addSubview(messageLabel)
         messageContainer.addSubview(sender)
+        
         messageContainer.translatesAutoresizingMaskIntoConstraints = false
         messageLabel.translatesAutoresizingMaskIntoConstraints = false
         time.translatesAutoresizingMaskIntoConstraints = false
         sender.translatesAutoresizingMaskIntoConstraints = false
+        
         messageContainer.layer.cornerRadius = 10
         
         leftConstraint = messageContainer.leftAnchor.constraint(equalTo: leftAnchor, constant: 5)
@@ -95,25 +104,31 @@ class MessageCell: UITableViewCell {
     func configureMessageCell() {
         
         messageLabel.text = message!.message
+        
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "hh:mm:a"
         time.text = dateFormatter.string(from: message!.time)
         
         if message?.sender == Auth.auth().currentUser?.uid{
+            sender.isHidden = true
             leftConstraint.isActive = false
             rightConstraint.isActive = true
-            messageContainer.backgroundColor = .systemIndigo
-            
+            messageContainer.backgroundColor = color.currentUserMessageBackground
+            time.textColor = color.currentUserTime
         } else {
-            let uid = message?.sender
-            DatabaseManager.shared.fetchCurrentUser(uid: uid!) { user in
-                self.sender.text = user.username
-            }
-            
+            sender.isHidden = false
             rightConstraint.isActive = false
             leftConstraint.isActive = true
-            messageContainer.backgroundColor = .secondaryLabel
-            
+            messageContainer.backgroundColor = color.gray
+            time.textColor = color.time
+        }
+    }
+    func configureSenderData() {
+        for user in usersList! {
+            if message?.sender == user.uid && message?.sender != Auth.auth().currentUser?.uid{
+                sender.text = user.username
+                
+            }
         }
     }
 }

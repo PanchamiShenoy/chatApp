@@ -7,8 +7,6 @@
 
 import Foundation
 
-import Foundation
-
 struct MessageModel {
     var sender: String
     var message: String
