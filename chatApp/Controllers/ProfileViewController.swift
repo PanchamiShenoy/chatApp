@@ -10,85 +10,17 @@ import FirebaseAuth
 import SwiftUI
 
 class ProfileViewController: UIViewController {
-    
-    
-    @IBOutlet weak var tableView: UITableView!
-    
-    var imageView:UIImageView!
-    var userName =  UILabel()
-    var Email = UILabel()
-    let data = ["Logout"]
-    var path : String!
-    var currentUser :User?
     override func viewDidLoad() {
         super.viewDidLoad()
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
-        tableView.delegate = self
-        tableView.dataSource = self
+        configure()
+        configureUI()
     }
+    
     override func viewDidAppear(_ animated: Bool) {
         fetchUser()
-        tableView.tableHeaderView = createTableHeader()
-    }
-    func createTableHeader()->UIView? {
-        
-        let headerView = UIView(frame: CGRect(x: 0, y: 0, width:view.frame.width, height: 300))
-        headerView.backgroundColor = UIColor.systemIndigo
-        
-        imageView = UIImageView(frame: CGRect(x: (view.frame.width-150)/2, y: 30, width: 150, height: 150))
-        imageView.contentMode = .scaleAspectFill
-        imageView.layer.borderColor = UIColor.white.cgColor
-        imageView.layer.borderWidth = 2
-        imageView.layer.cornerRadius = 70
-        imageView.layer.masksToBounds = true
-        imageView.tintColor = .white
-        imageView.image = UIImage(systemName: "person.fill")
-        headerView.addSubview(imageView)
-        userName = UILabel(frame: CGRect(x: (view.frame.width-250)/2, y: 210, width: 400, height: 30))
-        userName.textColor = .white
-        Email = UILabel(frame: CGRect(x: (view.frame.width-250)/2, y: 250, width: 400, height: 30))
-        Email.textColor = .white
-        headerView.addSubview(userName)
-        headerView.addSubview(Email)
-        return headerView
-        
-    }
-    func fetchUser(){
-        let uid = Auth.auth().currentUser?.uid
-        DatabaseManager.shared.fetchCurrentUser(uid: uid!) { user in
-            DispatchQueue.main.async {
-                self.currentUser = user
-                self.userName.text = "USER NAME : "+user.username
-                self.Email.text = "EMAIL : "+user.email
-
-            }
-        }
-        StorageManager.shared.downloadImageWithPath(path: "Profile/\(uid!)") { image in
-            DispatchQueue.main.async {
-                self.imageView.image = image
-                
-            }
-        }
     }
     
-}
-
-
-extension ProfileViewController : UITableViewDelegate,UITableViewDataSource {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return data.count
-    }
-    
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell",for: indexPath)
-        cell.textLabel?.text = data[indexPath.row]
-        cell.textLabel?.textAlignment = .center
-        cell.textLabel?.textColor = .label
-        return cell
-    }
-    
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath, animated: true)
+    @objc func onLogout(){
         do {
             let isLoggedOut = DatabaseManager.shared.onLogout()
             if isLoggedOut{
@@ -97,6 +29,100 @@ extension ProfileViewController : UITableViewDelegate,UITableViewDataSource {
                 self.present(vc, animated: true)
             }
         }
+    }
+    
+    let image :UIImageView = {
+        let image = UIImageView()
+        image.image = UIImage(systemName: "person.fill")
+        image.clipsToBounds = true
+        image.contentMode = .scaleAspectFill
+        image.backgroundColor = color.time
+        image.tintColor = .white
+        image.layer.cornerRadius = 50
+        image.isUserInteractionEnabled = true
+        return image
+    }()
+    
+    let logout : UIButton = {
+        let logout = UIButton()
+        logout.setTitle("LOGOUT", for: .normal)
+        logout.backgroundColor = color.green
+        logout.heightAnchor.constraint(equalToConstant: 50).isActive = true
+        logout.addTarget(self, action: #selector(onLogout), for: .touchUpInside)
+        return logout
+    }()
+    
+    let userName:UILabel = {
+        let label = UILabel()
+        label.textColor = color.white
+        label.contentMode = .center
+        label.textAlignment = .center
+        return label
+    }()
+    
+    let email:UILabel = {
+        let label = UILabel()
+        label.contentMode = .center
+        label.textColor = color.white
+        label.textAlignment = .center
+        return label
+    }()
+    
+    func configureUI(){
+        let app = UINavigationBarAppearance()
+        app.backgroundColor = color.navBarBackground
+        let textAttributes = [NSAttributedString.Key.foregroundColor:color.white]
+        app.titleTextAttributes = textAttributes
+        self.navigationController?.navigationBar.scrollEdgeAppearance = app
+        navigationItem.title = "Profile"
+    }
+    
+    func fetchUser(){
+        let uid = Auth.auth().currentUser?.uid
+        DatabaseManager.shared.fetchCurrentUser(uid: uid!) { user in
+            DispatchQueue.main.async {
+                // self.currentUser = user
+                self.userName.text = "USER NAME : "+user.username
+                self.email.text = "EMAIL : "+user.email
+                
+            }
+        }
+        StorageManager.shared.downloadImageWithPath(path: "Profile/\(uid!)") { image in
+            DispatchQueue.main.async {
+                self.image.image = image
+                
+            }
+        }
+    }
+    
+    func configure(){
+        view.backgroundColor = color.background
+
+        email.translatesAutoresizingMaskIntoConstraints = false
+        logout.translatesAutoresizingMaskIntoConstraints = false
+        userName.translatesAutoresizingMaskIntoConstraints = false
+        image.translatesAutoresizingMaskIntoConstraints = false
+                
+        let stack = UIStackView(arrangedSubviews: [userName,email])
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        stack.axis = .vertical
+        stack.spacing = 20
         
+        view.addSubview(stack)
+        view.addSubview(image)
+        view.addSubview(logout)
+        
+        image.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
+        image.topAnchor.constraint(equalTo: view.topAnchor,constant: 120).isActive = true
+        image.heightAnchor.constraint(equalToConstant: 100).isActive = true
+        image.widthAnchor.constraint(equalToConstant: 100).isActive = true
+        
+        stack.topAnchor.constraint(equalTo: image.bottomAnchor,constant: 40).isActive = true
+        stack.rightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.rightAnchor,constant: -20).isActive = true
+        stack.leftAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leftAnchor,constant: 20).isActive = true
+        
+        logout.topAnchor.constraint(equalTo: stack.bottomAnchor,constant: 20).isActive = true
+        logout.centerXAnchor.constraint(equalTo:view.centerXAnchor).isActive = true
+        logout.widthAnchor.constraint(equalToConstant: 200).isActive = true
     }
 }

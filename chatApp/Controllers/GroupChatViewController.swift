@@ -14,8 +14,8 @@ class GroupChatViewController: UIViewController {
     var users: [User] = []
     var collectionView: UICollectionView!
     let cellIdentifier = "GCCell"
-   // var selectedUsers:[User] = []
     var selectedUsers:[IndexPath] = []
+    
     override func viewDidLoad(){
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
@@ -25,22 +25,9 @@ class GroupChatViewController: UIViewController {
         fetchAllUsers()
         configureUI()
         fetchCurrentUser()
-       
+        
     }
     
-    let image :UIImageView = {
-        let image = UIImageView()
-        image.image = UIImage(systemName: "person.fill")
-        image.clipsToBounds = true
-        image.contentMode = .scaleAspectFit
-        image.backgroundColor = UIColor.systemIndigo
-        image.tintColor = UIColor.white
-        image.layer.cornerRadius = 50
-        image.isUserInteractionEnabled = true
-        return image
-    }()
-    var groupName = CustomTextField(placeholder: "Enter Group Name",isPassword: false)
-    lazy var containerGroupName = CustomContainerView(image: UIImage(systemName: "person.3.fill")!, textField:groupName)
     @objc func didTapProfilePic() {
         presentPhotoActionSheet()
     }
@@ -66,26 +53,52 @@ class GroupChatViewController: UIViewController {
         delegate?.controllerGroupChat(wantsToStartChatWith: chat)
         
     }
+    
+    @objc func onClose(){
+        dismiss(animated: true)
+    }
+    
+    let image :UIImageView = {
+        let image = UIImageView()
+        image.image = UIImage(systemName: "person.fill")
+        image.clipsToBounds = true
+        image.contentMode = .scaleAspectFit
+        image.backgroundColor = color.gray
+        image.tintColor = UIColor.white
+        image.layer.cornerRadius = 50
+        image.isUserInteractionEnabled = true
+        return image
+    }()
+    var groupName = CustomTextField(placeholder: "Enter Group Name",isPassword: false)
+    lazy var containerGroupName = CustomContainerView(image: UIImage(systemName: "person.3.fill")!, textField:groupName)
+   
     func fetchCurrentUser(){
         let uid = Auth.auth().currentUser?.uid
         DatabaseManager.shared.fetchCurrentUser(uid:uid!) { currentUser in
             self.currentUser = currentUser
         }
     }
+
     func configureUI(){
-        //navigationController?.title = "GROUP CHAT"
-        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(didTapComposeButton))
-        navigationItem.rightBarButtonItem?.tintColor = .systemIndigo
+        view.backgroundColor = color.background
+        
         navigationItem.title = "Group Chats"
-        let appearance = UINavigationBarAppearance()
-        appearance.configureWithOpaqueBackground()
-        appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.label]
-        appearance.backgroundColor = .systemBackground
-        navigationItem.titleView?.tintColor = .label
+        
+        let app = UINavigationBarAppearance()
+        app.backgroundColor = color.navBarBackground
+        let textAttributes = [NSAttributedString.Key.foregroundColor:UIColor(red: 0.616, green: 0.647, blue: 0.675, alpha: 1)]
+        app.titleTextAttributes = textAttributes
+        self.navigationController?.navigationBar.scrollEdgeAppearance = app
+        
+        navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(systemName:"arrow.left" ), style: .plain, target: self, action: #selector(onClose))
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(didTapComposeButton))
+        navigationItem.leftBarButtonItem?.tintColor = color.navItem
+        navigationItem.rightBarButtonItem?.tintColor = color.navItem
         
         view.addSubview(collectionView)
         view.addSubview(image)
         view.addSubview(containerGroupName)
+        
         image.translatesAutoresizingMaskIntoConstraints = false
         groupName.translatesAutoresizingMaskIntoConstraints = false
         containerGroupName.translatesAutoresizingMaskIntoConstraints = false
@@ -97,6 +110,7 @@ class GroupChatViewController: UIViewController {
             image.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             image.heightAnchor.constraint(equalToConstant: 100),
             image.widthAnchor.constraint(equalToConstant: 100),
+            
             containerGroupName.topAnchor.constraint(equalTo: image.bottomAnchor, constant: 20),
             containerGroupName.leftAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leftAnchor, constant: 20),
             containerGroupName.rightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.rightAnchor, constant: -20),
@@ -112,6 +126,7 @@ class GroupChatViewController: UIViewController {
         collectionView = UICollectionView(frame: view.bounds, collectionViewLayout: UICollectionViewFlowLayout())
         collectionView.dataSource = self
         collectionView.delegate = self
+        collectionView.backgroundColor = color.background
         collectionView.register(ConversationCell.self, forCellWithReuseIdentifier:cellIdentifier)
     }
     
@@ -119,7 +134,6 @@ class GroupChatViewController: UIViewController {
         let uidString :String = FirebaseAuth.Auth.auth().currentUser!.uid
         DatabaseManager.shared.fetchAllUsers(uid:uidString) { users in
             self.users = users
-            // self.results = users
             DispatchQueue.main.async {
                 self.collectionView.reloadData()
             }
@@ -146,23 +160,22 @@ extension GroupChatViewController: UICollectionViewDataSource {
         return cell
     }
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-//        let selectedUser = users[indexPath.row]
-//        if selectedUsers.contains(selectedUser){
-//            selectedUsers.removeAll { value in
-//              return value == selectedUser
-//            }
-//        }
+        //        let selectedUser = users[indexPath.row]
+        //        if selectedUsers.contains(selectedUser){
+        //            selectedUsers.removeAll { value in
+        //              return value == selectedUser
+        //            }
+        //        }
         let selectedCell: UICollectionViewCell = collectionView.cellForItem(at: indexPath)!
         if selectedUsers.contains(indexPath) {
             selectedUsers.removeAll{ value in
                 return value == indexPath
             }
             selectedCell.backgroundColor = .white
-               } else {
-                  // selectedCell.isHighlighted = true
-                   selectedUsers.append(indexPath)
-                   selectedCell.backgroundColor = .opaqueSeparator
-               }
+        } else {
+            selectedUsers.append(indexPath)
+            selectedCell.backgroundColor = .opaqueSeparator
+        }
     }
 }
 extension GroupChatViewController: UICollectionViewDelegateFlowLayout {
@@ -192,6 +205,7 @@ extension GroupChatViewController:UIImagePickerControllerDelegate,UINavigationCo
         actionSheet.addAction(UIAlertAction(title: "Cancel", style: .default, handler:nil))
         present(actionSheet, animated: true, completion: nil)
     }
+    
     func presentCamera(){
         let vc =  UIImagePickerController()
         vc.sourceType = .camera
@@ -199,6 +213,7 @@ extension GroupChatViewController:UIImagePickerControllerDelegate,UINavigationCo
         vc.allowsEditing = true
         present(vc, animated: true, completion: nil)
     }
+    
     func presentPhotoLibrary() {
         let vc =  UIImagePickerController()
         vc.sourceType = .photoLibrary
@@ -206,6 +221,7 @@ extension GroupChatViewController:UIImagePickerControllerDelegate,UINavigationCo
         vc.allowsEditing = true
         present(vc, animated: true, completion: nil)
     }
+    
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
         picker.dismiss(animated: true, completion: nil)
         

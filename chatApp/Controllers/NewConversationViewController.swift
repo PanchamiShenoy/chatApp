@@ -11,7 +11,6 @@ import NotificationCenter
 class NewConversationViewController:UIViewController,UICollectionViewDelegate{
     
     let cellIdentifier = "userCell"
-    
     var conversations:[ChatModel] = []
     var currentUser: User?
     weak var delegate: NewMessageControllerdelegate?
@@ -22,6 +21,31 @@ class NewConversationViewController:UIViewController,UICollectionViewDelegate{
     var collectionView: UICollectionView!
     var uid :String = FirebaseAuth.Auth.auth().currentUser!.uid
     let searchController = UISearchController(searchResultsController: nil)
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        configureCollectionView()
+        configureUI()
+        configureSearchBar()
+        fetchAllUser()
+        DatabaseManager.shared.fetchCurrentUser(uid:uid) { currentUser in
+            self.currentUser = currentUser
+        }
+    }
+    
+    @objc func searchContact(){
+        self.navigationItem.searchController?.searchBar.isHidden = false
+        self.navigationItem.searchController = searchController
+    }
+    
+    @objc func dismissNewConversation(){
+        dismiss(animated: true, completion: nil)
+    }
+    
+    @objc func onClose(){
+        dismiss(animated: true)
+    }
+    
     let noResultLabel:UILabel = {
         let label = UILabel()
         label.text = "no results"
@@ -31,58 +55,56 @@ class NewConversationViewController:UIViewController,UICollectionViewDelegate{
         label.isHidden = true
         return label
     }()
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        //configureNavigationBar()
-        configureCollectionView()
-        configureUI()
-        configureSearchBar()
-        fetchAllUser()
-        DatabaseManager.shared.fetchCurrentUser(uid:uid) { currentUser in
-            self.currentUser = currentUser
-            print("##########",currentUser)
-        }
-    }
-    
-    func setupKeyboardObservers() {
-        // NSNotificationC
-    }
     
     func configureUI() {
         view.addSubview(noResultLabel)
-        view.backgroundColor = .white
-        navigationItem.title = "Select User"
-        navigationItem.backButtonTitle = ""
+        noResultLabel.translatesAutoresizingMaskIntoConstraints = false
+        noResultLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor).isActive = true
+        noResultLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
+        noResultLabel.textColor = color.white
+        
+        view.backgroundColor = color.background
+        
+        navigationItem.title = "Select Contact"
+       
+        let app = UINavigationBarAppearance()
+        app.backgroundColor = color.navBarBackground
+        let textAttributes = [NSAttributedString.Key.foregroundColor:UIColor(red: 0.616, green: 0.647, blue: 0.675, alpha: 1)]
+        app.titleTextAttributes = textAttributes
+        self.navigationController?.navigationBar.scrollEdgeAppearance = app
+        
+        navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(systemName:"arrow.left" ), style: .plain, target: self, action: #selector(onClose))
+        navigationItem.leftBarButtonItem?.tintColor = color.navItem
+        let searchIcon = UIBarButtonItem(barButtonSystemItem: .search, target:self, action:#selector(searchContact) )
+        navigationItem.rightBarButtonItems = [searchIcon]
+        navigationItem.rightBarButtonItem?.tintColor = color.navItem
+        
     }
     
     func configureSearchBar(){
         searchController.loadViewIfNeeded()
         searchController.searchResultsUpdater = self
         searchController.searchBar.delegate = self
+        searchController.searchBar.tintColor = color.white
         searchController.obscuresBackgroundDuringPresentation = false
         searchController.searchBar.enablesReturnKeyAutomatically = false
         searchController.searchBar.returnKeyType = UIReturnKeyType.done
-        self.navigationItem.searchController = searchController
         self.navigationItem.hidesSearchBarWhenScrolling = false
         definesPresentationContext = true
     }
     
-    @objc func dismissNewConversation(){
-        dismiss(animated: true, completion: nil)
-    }
     func configureCollectionView() {
         collectionView = UICollectionView(frame: view.bounds, collectionViewLayout: UICollectionViewFlowLayout())
-        
         view.addSubview(collectionView)
         collectionView.dataSource = self
         collectionView.delegate = self
+        collectionView.backgroundColor = color.background
         collectionView.register(ConversationCell.self, forCellWithReuseIdentifier: cellIdentifier)
     }
     
     func fetchAllUser() {
         DatabaseManager.shared.fetchAllUsers(uid: uid) { users in
             self.users = users
-            // self.results = users
             DispatchQueue.main.async {
                 self.collectionView.reloadData()
             }
@@ -100,13 +122,9 @@ extension NewConversationViewController: UICollectionViewDataSource {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: cellIdentifier, for: indexPath) as! ConversationCell
         
         let user = searching ? results[indexPath.row] : users[indexPath.row]
-        
-        //cell.text = user.email
         cell.message.text = user.username
         cell.time.isHidden = true
         cell.checkBox.isHidden =  true
-        // cell.selectButton.isHidden = true
-        
         let uid = user.uid
         
         StorageManager.shared.downloadImageWithPath(path: "Profile/\(uid)") { image in
@@ -117,10 +135,14 @@ extension NewConversationViewController: UICollectionViewDataSource {
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        
         let selectedUser = searching ? results[indexPath.row] : users[indexPath.row]
         let id = "\(currentUser!.uid)_\(selectedUser.uid)"
         let chatVC = ChatViewController()
         for chat in conversations {
+            if chat.isGroupChat {
+                continue
+            }
             var currentChat = chat
             let uid1 = chat.users[0].uid
             let uid2 = chat.users[1].uid
@@ -166,7 +188,11 @@ extension NewConversationViewController:UISearchResultsUpdating,UISearchBarDeleg
         }
         else{
             searching = false
+            noResultLabel.isHidden = true
             results = users
+        }
+        if results.isEmpty {
+            noResultLabel.isHidden = false
         }
         collectionView.reloadData()
     }
@@ -174,6 +200,8 @@ extension NewConversationViewController:UISearchResultsUpdating,UISearchBarDeleg
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
         searching = false
         results = users
+        noResultLabel.isHidden = true
+        self.navigationItem.searchController?.searchBar.isHidden = true
         collectionView.reloadData()
     }
     

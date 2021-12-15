@@ -8,6 +8,7 @@
 import Foundation
 import FirebaseStorage
 import UIKit
+
 final class StorageManager {
     
     static let shared = StorageManager()

@@ -20,7 +20,7 @@ class SignUpViewController: UIViewController {
     let signUp : UIButton = {
         let login = UIButton()
         login.setTitle("SIGN UP", for: .normal)
-        login.backgroundColor = .systemIndigo
+        login.backgroundColor = color.green
         login.heightAnchor.constraint(equalToConstant: 50).isActive = true
         login.addTarget(self, action: #selector(onSignUp), for: .touchUpInside)
         return login
@@ -31,8 +31,8 @@ class SignUpViewController: UIViewController {
         image.image = UIImage(systemName: "person.fill")
         image.clipsToBounds = true
         image.contentMode = .scaleAspectFit
-        image.backgroundColor = UIColor.systemIndigo
-        image.tintColor = UIColor.white
+        image.backgroundColor = color.green
+        image.tintColor = color.profileTintColor
         image.layer.cornerRadius = 50
         image.isUserInteractionEnabled = true
         return image
@@ -40,8 +40,8 @@ class SignUpViewController: UIViewController {
     let signIn :UIButton = {
         let signIn = UIButton()
         signIn.setTitle("Already have an account?Login In", for: .normal)
-        signIn.backgroundColor = .systemBackground
-        signIn.setTitleColor(.label, for: .normal)
+        signIn.backgroundColor = color.background
+        signIn.setTitleColor(color.green, for: .normal)
         signIn.heightAnchor.constraint(equalToConstant: 50).isActive = true
         signIn.addTarget(self, action: #selector(onAccountExist), for: .touchUpInside)
         return signIn
@@ -58,7 +58,6 @@ class SignUpViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         configure()
         configureOrientationObserver()
         let gesture = UITapGestureRecognizer(target: self, action: #selector(didTapProfilePic))
@@ -67,7 +66,7 @@ class SignUpViewController: UIViewController {
     }
     
     func configure(){
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = color.background
         
         // view.addSubview(image)
         scrollView.translatesAutoresizingMaskIntoConstraints = false
@@ -85,9 +84,8 @@ class SignUpViewController: UIViewController {
         view.addSubview(scrollView)
         scrollView.contentSize = CGSize(width: view.frame.width, height: 650)
         scrollView.addSubview(image)
-        //  scrollView.backgroundColor = .red
-        //scrollView.addSubview(image)
         scrollView.addSubview(stack)
+        
         scrollView.leftAnchor.constraint(equalTo: view.leftAnchor).isActive = true
         scrollView.rightAnchor.constraint(equalTo: view.rightAnchor).isActive = true
         scrollView.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
@@ -97,11 +95,10 @@ class SignUpViewController: UIViewController {
         image.topAnchor.constraint(equalTo: scrollView.topAnchor,constant: 60).isActive = true
         image.heightAnchor.constraint(equalToConstant: 100).isActive = true
         image.widthAnchor.constraint(equalToConstant: 100).isActive = true
+        
         stack.topAnchor.constraint(equalTo: image.bottomAnchor,constant: 40).isActive = true
         stack.rightAnchor.constraint(equalTo: scrollView.safeAreaLayoutGuide.rightAnchor,constant: -20).isActive = true
         stack.leftAnchor.constraint(equalTo: scrollView.safeAreaLayoutGuide.leftAnchor,constant: 20).isActive = true
-        //stack.centerXAnchor.constraint(equalTo: scrollView.centerXAnchor).isActive = true
-        
         
     }
     func configureOrientationObserver() {
@@ -113,6 +110,7 @@ class SignUpViewController: UIViewController {
     }
     
     @objc func onSignUp(){
+        signUp.pulsate()
         let error = validateFields()
         
         if error != nil {
@@ -128,7 +126,7 @@ class SignUpViewController: UIViewController {
             
             FirebaseAuth.Auth.auth().createUser(withEmail: email, password: password) { [weak self] authResult, error in
                 guard authResult != nil, error == nil else {
-                    self?.showAlert(title: "ERROR", messageContent: "erroe in creating user")
+                    //self?.showAlert(title: "ERROR", messageContent: "erroe in creating user")
                     return
                 }
                 let uid = authResult?.user.uid
@@ -136,18 +134,11 @@ class SignUpViewController: UIViewController {
                 StorageManager.shared.uploadImage(image: profilePic!, uid: uid!) { url in
                     let newUser = User(username: firstName + secondName, email: email, profileURL: url, uid: uid!)
                     DatabaseManager.shared.addUser(user: newUser)
-                    // self?.delegate?.userAuthenticated()
                     self?.dismiss(animated: true)
                 }
                 self?.presentingViewController?.presentingViewController?.dismiss(animated: true, completion: nil)
             }
-            
-            
-            
-            
-            
         }
-        // dismiss(animated: true, completion: nil)
     }
     
     func validateFields() -> String? {

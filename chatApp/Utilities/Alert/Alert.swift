@@ -56,7 +56,6 @@ class AlertVC: UIViewController {
     }
     
     func configureTitleLabel() {
-        print("@@@@@@@@@@@@@@@")
         containerView.addSubview(titleLabel)
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.text = alertTitle ?? "something went wrong"
@@ -73,7 +72,6 @@ class AlertVC: UIViewController {
     }
     
     func configureActionButton() {
-        print("$$$$$$$$$$$$$$$$")
         containerView.addSubview(actionButton)
         actionButton.setTitle(buttonTitle ?? "ok", for: .normal)
         actionButton.translatesAutoresizingMaskIntoConstraints = false
@@ -89,7 +87,6 @@ class AlertVC: UIViewController {
     }
     
     func configureBodyLabel() {
-        print("\n##############")
         messageLabel.translatesAutoresizingMaskIntoConstraints = false
         containerView.addSubview(messageLabel)
         messageLabel.text = message ?? "unable to complete request"
@@ -99,7 +96,6 @@ class AlertVC: UIViewController {
             messageLabel.topAnchor.constraint(equalTo:titleLabel.bottomAnchor,constant: 9),
             messageLabel.leadingAnchor.constraint(equalTo: containerView.leadingAnchor,constant: 20),
             messageLabel.bottomAnchor.constraint(equalTo: actionButton.topAnchor,constant: -12),
-           
             messageLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor,constant: -20)
             
         ])

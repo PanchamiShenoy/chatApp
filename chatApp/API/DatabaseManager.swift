@@ -8,6 +8,7 @@
 import Foundation
 import FirebaseDatabase
 import FirebaseAuth
+
 struct DatabaseManager {
     private let database = Database.database().reference()
     static let shared = DatabaseManager()
@@ -140,7 +141,6 @@ struct DatabaseManager {
                 //chat id is the key and chat cont.ent is the value
                 for key in result.keys {
                     let value = result[key]!
-                    var messagesArray: [MessageModel] = []
                     var lastMessage: MessageModel?
                     
                     let users = value["users"] as! [[String: Any]]
@@ -157,10 +157,11 @@ struct DatabaseManager {
                         lastMessage = MessageModel(sender: sender, message:message, time: time!)
                         
                     } else {
-                        messagesArray = []
                         lastMessage = nil
                     }
                     var usersArray: [User] = []
+                    var uidArray: [String] = []
+                    
                     var chat :ChatModel
                     for user in users {
                         let email = user["email"] as! String
@@ -169,6 +170,7 @@ struct DatabaseManager {
                         let profileURL = user["profileURL"] as! String
                         let userModel =  User(username: username, email: email, profileURL: profileURL, uid: uid)
                         usersArray.append(userModel)
+                        uidArray.append(userModel.uid)
                     }
                     if isGroupChat {
                         let groupChatName = value["groupChatName"] as! String
@@ -186,8 +188,10 @@ struct DatabaseManager {
                         
                         chat = ChatModel(users: usersArray, lastMessage: lastMessage, messagesArray: [],otherUserIndex:otherUserIndex, chatId: key, isGroupChat: isGroupChat)
                     }
+                    if uidArray.contains(uid){
+                        chats.append(chat)
+                    }
                     
-                    chats.append(chat)
                 }
                 print(chats)
                 completion(chats)

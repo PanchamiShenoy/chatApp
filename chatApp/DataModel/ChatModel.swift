@@ -6,8 +6,6 @@
 //
 
 import Foundation
-import Foundation
-
 struct ChatModel{
     var users: [User]
     var lastMessage: MessageModel?

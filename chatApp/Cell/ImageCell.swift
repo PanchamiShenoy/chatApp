@@ -5,7 +5,6 @@
 //  Created by Panchami Shenoy on 03/12/21.
 //
 
-
 import UIKit
 import FirebaseAuth
 
@@ -13,11 +12,18 @@ class ImageCell: UITableViewCell {
     var leftConstraint: NSLayoutConstraint!
     var rightConstraint: NSLayoutConstraint!
     
+    var usersList: [User]? {
+        didSet {
+            configureSenderData()
+        }
+    }
+    
     var message: MessageModel? {
         didSet {
             configureImageCell()
         }
     }
+    
     var messageContainer : UIView = {
         let view = UIView()
         view.layer.cornerRadius = 10
@@ -31,15 +37,14 @@ class ImageCell: UITableViewCell {
         image.layer.cornerRadius = 20
         image.clipsToBounds = true
         image.contentMode = .scaleAspectFill
+        image.tintColor = color.gray
         image.translatesAutoresizingMaskIntoConstraints = false
         image.image = UIImage(systemName: "camera.fill")
         return image
     }()
     
-    
     let time: UILabel = {
         let time = UILabel()
-        time.textColor = .secondarySystemBackground
         time.font = UIFont.systemFont(ofSize: 12)
         time.adjustsFontSizeToFitWidth = true
         time.translatesAutoresizingMaskIntoConstraints =  false
@@ -48,8 +53,8 @@ class ImageCell: UITableViewCell {
     
     let sender:UILabel = {
         let sender = UILabel()
-        sender.textColor = .secondarySystemBackground
-        sender.font = UIFont.systemFont(ofSize: 12)
+        sender.textColor = .orange
+        sender.font = UIFont.systemFont(ofSize: 13)
         sender.adjustsFontSizeToFitWidth = true
         sender.translatesAutoresizingMaskIntoConstraints =  false
         return sender
@@ -61,9 +66,11 @@ class ImageCell: UITableViewCell {
         messageContainer.addSubview( MessageImage)
         messageContainer.addSubview(time)
         messageContainer.addSubview(sender)
+        
         messageContainer.translatesAutoresizingMaskIntoConstraints = false
         time.translatesAutoresizingMaskIntoConstraints = false
         sender.translatesAutoresizingMaskIntoConstraints = false
+        
         messageContainer.layer.cornerRadius = 10
         
         leftConstraint = messageContainer.leftAnchor.constraint(equalTo: leftAnchor, constant: 5)
@@ -71,7 +78,7 @@ class ImageCell: UITableViewCell {
         
         NSLayoutConstraint.activate([
             messageContainer.widthAnchor.constraint(equalTo:  MessageImage.widthAnchor, constant: 20),
-            messageContainer.topAnchor.constraint(equalTo: topAnchor, constant: 10),
+            messageContainer.topAnchor.constraint(equalTo: topAnchor, constant: 5),
             messageContainer.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -5),
             
             sender.topAnchor.constraint(equalTo: messageContainer.topAnchor,constant: 10),
@@ -98,6 +105,7 @@ class ImageCell: UITableViewCell {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "hh:mm:a"
         time.text = dateFormatter.string(from: message!.time)
+        
         StorageManager.shared.downloadImageWithPath(path: message!.imagePath!, completion: { image in
             DispatchQueue.main.async {
                 self.MessageImage.image = image
@@ -107,15 +115,21 @@ class ImageCell: UITableViewCell {
         if message?.sender == Auth.auth().currentUser?.uid{
             leftConstraint.isActive = false
             rightConstraint.isActive = true
-            messageContainer.backgroundColor = .systemIndigo
+            messageContainer.backgroundColor = color.currentUserMessageBackground
+            time.textColor = color.currentUserTime
         } else {
-            let uid = message?.sender
-            DatabaseManager.shared.fetchCurrentUser(uid: uid!) { user in
-                self.sender.text = user.username
-            }
             rightConstraint.isActive = false
             leftConstraint.isActive = true
-            messageContainer.backgroundColor = .secondaryLabel
+            messageContainer.backgroundColor = color.gray
+            time.textColor = UIColor(red: 0.533, green: 0.576, blue: 0.592, alpha: 1)
+        }
+    }
+    func configureSenderData() {
+        for user in usersList! {
+            if message?.sender == user.uid && message?.sender != Auth.auth().currentUser?.uid{
+                sender.text = user.username
+                
+            }
         }
     }
 }
